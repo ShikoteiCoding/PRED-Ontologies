@@ -27,8 +27,6 @@ def parse_pattern_file(path_to_corpus: str) -> List[str]:
         list_of_patterns.append(line.replace('\n', ''))
     return list_of_patterns
 
-
-
 if __name__ == "__main__":
     list_of_patterns = parse_pattern_file(path_to_spm)
 

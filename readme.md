@@ -1,3 +1,11 @@
+#Readme 
+
+What is needed to run in the console before running the main.py :
+$pip3 install nltk
+$pip3 install spacy
+$python -m spacy download en_core_web_sm
+
+
 -Requirements:
     Python 3 (download from Anaconda environment is preferred)
     install nltk
