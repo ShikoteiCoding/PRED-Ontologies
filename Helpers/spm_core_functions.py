@@ -1,5 +1,6 @@
 import itertools
 
+
 def check_gap(mat, mingap=0, maxgap=0):
     for i, mat_i in enumerate(mat):
         if i == 0:
@@ -10,13 +11,16 @@ def check_gap(mat, mingap=0, maxgap=0):
         pre = mat_i
     return True
 
+
 def sequenceMatching(edgeMatching, mingap=0, maxgap=0):
     all_combinations = list(itertools.product(*edgeMatching))
     all_matchings = []
     for mat in all_combinations:
         if check_gap(mat, mingap, maxgap):
             all_matchings.append(list(mat))
+    del all_combinations  # prevent memory error
     return all_matchings
+
 
 def relevant_pattern(pattern, patterns, min_gap=0, max_gap=0):
     for b_pat in patterns:
@@ -24,8 +28,9 @@ def relevant_pattern(pattern, patterns, min_gap=0, max_gap=0):
             return True
     return False
 
+
 def is_subsequence(pat1, pat2, mingap=0, maxgap=0):
-    pat1_itemsets = [edge.replace("[","").replace("(","").split(", ") for edge in pat1.split(")")][:-1]
+    pat1_itemsets = [edge.replace("[", "").replace("(","").split(", ") for edge in pat1.split(")")][:-1]
     pat2_itemsets = [edge.replace("[", "").replace("(", "").split(", ") for edge in pat2.split(")")][:-1]
     matching = []
     for itemset1 in pat1_itemsets:

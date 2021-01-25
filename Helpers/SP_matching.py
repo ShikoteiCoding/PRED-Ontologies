@@ -1,10 +1,16 @@
+import gc
+from typing import Iterator, Tuple, List
+
 from Helpers import HyperHypoCouple as Hh
 from Helpers import core_functions as cf
 from Helpers import spm_core_functions as spm_cf
 import itertools
 
+from Helpers.HyperHypoCouple import HHCouple
+from Helpers.ParsedSentence import ParsedSentence
 
-def edges_matching(patternEdge, pathEdge):
+
+def edges_matching(patternEdge, pathEdge) -> bool:
     hyp_list = ["hypo", "hyper", "hyper_dep", "hypo_dep"]
     for patternItem in patternEdge:
         if patternItem in hyp_list:
@@ -13,27 +19,32 @@ def edges_matching(patternEdge, pathEdge):
             return False
     return True
 
-def getLemmaFromEdge(edge):
+
+def get_lemma_from_edge(edge):
     for item in edge:
         if str(item).__contains__("_lemma"):
-            return str(item).replace("_lemma","")
+            return str(item).replace("_lemma", "")
     return ""
 
-def getLabelFromEdge(edge):
+
+def get_label_from_edge(edge):
     for item in edge:
         if str(item).__contains__("_label"):
-            return str(item).replace("_label","").replace("_", " ")
+            return str(item).replace("_label", "").replace("_", " ")
     return ""
 
-def getDepFromEdge(edge):
+
+def get_dep_from_edge(edge):
     for item in edge:
         if str(item).__contains__("_dep"):
-            return str(item).replace("_dep","")
+            return str(item).replace("_dep", "")
 
-def spm_matching(pattern, parsed_sentence, mingap = 0, maxgap = 3):
+
+def spm_matching(pattern: str, parsed_sentence: str, mingap=0, maxgap=3) -> Tuple[bool, List[HHCouple], str]:
     hhCouples = []
-    pathEdges = [edge.replace("[","").replace("(","").replace(")]","").split(", ") for edge in parsed_sentence.split("), ")]
-    patternEdges = [edge.replace("[","").replace("(","").split(", ") for edge in pattern.split(")")][:-1]
+    pathEdges = [edge.replace("[", "").replace("(", "").replace(")]", "").split(", ") for edge in
+                 parsed_sentence.split("), ")]
+    patternEdges = [edge.replace("[", "").replace("(", "").split(", ") for edge in pattern.split(")")][:-1]
     edgeMatching = []
     hypoIndex = -1
     hyperDep = []
@@ -71,12 +82,12 @@ def spm_matching(pattern, parsed_sentence, mingap = 0, maxgap = 3):
         return False, [], ""
     for matching in matchings:
         hyperEdge = pathEdges[matching[hyperIndex]]
-        hyper = getLemmaFromEdge(hyperEdge)
-        hyperNP = cf.remove_first_occurrences_stopwords(getLabelFromEdge(hyperEdge))
+        hyper = get_lemma_from_edge(hyperEdge)
+        hyperNP = cf.remove_first_occurrences_stopwords(get_label_from_edge(hyperEdge))
         flag = False
         for i in hyperDep:
             depHyperEdge = pathEdges[matching[i]]
-            dephyper = getDepFromEdge(depHyperEdge)
+            dephyper = get_dep_from_edge(depHyperEdge)
             if hyper.strip() == dephyper.strip():
                 flag = True
             else:
@@ -85,16 +96,18 @@ def spm_matching(pattern, parsed_sentence, mingap = 0, maxgap = 3):
         if not flag and len(hyperDep) > 0:
             continue
         hypoEdge = pathEdges[matching[hypoIndex]]
-        hypo = getLemmaFromEdge(hypoEdge)
-        hypoNP = cf.remove_first_occurrences_stopwords(getLabelFromEdge(hypoEdge))
+        hypo = get_lemma_from_edge(hypoEdge)
+        hypoNP = cf.remove_first_occurrences_stopwords(get_label_from_edge(hypoEdge))
         flag2 = False
         for j in hypoDep:
             depHypoEdge = pathEdges[matching[j]]
-            dephypo = getDepFromEdge(depHypoEdge)
+            dephypo = get_dep_from_edge(depHypoEdge)
             if hypo.strip() == dephypo.strip():
                 flag2 = True
+                del depHypoEdge, dephypo
             else:
                 flag2 = False
+                del depHypoEdge, dephypo
                 break
         if not flag2 and len(hypoDep) > 0:
             continue
@@ -102,7 +115,7 @@ def spm_matching(pattern, parsed_sentence, mingap = 0, maxgap = 3):
         if hhc in hhCouples or hhc.hyponym == hhc.hypernym or hhc.hyponym == "" or hhc.hypernym == "":
             continue
         hhCouples.append(hhc)
-        cohypos = CoHyponymExtraction(pathEdges, hypo, matching[hypoIndex])
+        cohypos = co_hyponym_extraction(pathEdges, hypo, matching[hypoIndex])
         for chypo in cohypos:
             if chypo == hyperNP:
                 continue
@@ -110,17 +123,22 @@ def spm_matching(pattern, parsed_sentence, mingap = 0, maxgap = 3):
             if hhc in hhCouples or hhc.hyponym == hhc.hypernym or hhc.hyponym == "" or hhc.hypernym == "":
                 continue
             hhCouples.append(hhc)
+            del hhc
+        del cohypos, hypo, hypoEdge, hypoNP
+    del pathEdges, patternEdges, edgeMatching, hyperDep, hypoDep, matchings, li, hyperNP
     if len(hhCouples) == 0:
         return False, [], ""
     return True, hhCouples, pattern
 
 
-def CoHyponymExtraction(pathEdges, hypo_lemma, hypo_index):
+def co_hyponym_extraction(pathEdges, hypo_lemma, hypo_index) -> List:
     coHypos = []
     for i, pEdge in enumerate(pathEdges):
         if i > hypo_index:
-            if (str(hypo_lemma)+"_dep") in pEdge and ("conj:and<--" in pEdge or "conj:or<--" in pEdge or "appos<--" in pEdge):
+            if (str(hypo_lemma) + "_dep") in pEdge and (
+                    "conj:and<--" in pEdge or "conj:or<--" in pEdge or "appos<--" in pEdge):
                 hypo_NP = pEdge[0].replace("_label", "").replace("_", " ")
                 hypo_NP = cf.remove_first_occurrences_stopwords(hypo_NP)
                 coHypos.append(hypo_NP)
+                del hypo_NP
     return coHypos

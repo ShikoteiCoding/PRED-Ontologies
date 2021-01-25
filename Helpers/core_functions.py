@@ -1,19 +1,42 @@
+from typing import Generator, List, Tuple
+
 from nltk import word_tokenize
 from nltk import pos_tag
 from nltk import WordNetLemmatizer
 import spacy
 import gzip
-from Helpers import parsed_sentence as ps
+from Helpers import ParsedSentence as ps
+from Helpers.ParsedSentence import ParsedSentence
+from spacy.lang.en.stop_words import STOP_WORDS
+
 nlp = spacy.load('en_core_web_sm')
 lemma = WordNetLemmatizer()
+stopWords = set(STOP_WORDS)
+stopWords.add("seven")
+stopWords.add("especially")
+stopWords.add("other")
+stopWords.add("major")
+stopWords.add("numerous")
+stopWords.add("different")
+stopWords.add("new")
+stopWords.add("newer")
+stopWords.add("primary")
+stopWords.add("slower")
+stopWords.add("similar")
+stopWords.add("recent")
+stopWords.add("later")
+stopWords.add("better")
+stopWords.add("biggest")
+stopWords.add("good")
 
-def get_sentences(corpus_file):
+
+def get_sentences(corpus_file: str) -> Generator[ParsedSentence, None, None]:
     """
     Returns all the (content) sentences in a processed corpus file
     :param corpus_file: the processed corpus file (may be compressed or not)
     :return: the next sentence (a generator function)
     """
-    sent = ps.parsed_sentence()
+    sent = ps.ParsedSentence()
     # Read all the sentences in the file
     if str(corpus_file).endswith(".gz"):
         f_in = gzip.open(corpus_file, 'r')
@@ -50,7 +73,7 @@ def get_sentences(corpus_file):
             ri = 0
             np = ""
             np_indexes = []
-            sent = ps.parsed_sentence()
+            sent = ps.ParsedSentence()
         elif '<NP>' in line:
             isNP = True
         elif '</NP>' in line:
@@ -75,13 +98,11 @@ def get_sentences(corpus_file):
                 sent.add_word(word, lemma, pos, int(index), parent, int(parent_index), dep, type.strip())
             # One of the items is a space - ignore this token
             except Exception as e:
-                print (str(e))
+                print(str(e))
                 continue
 
 
-
-
-def head_and_lemma(couple_term):
+def head_and_lemma(couple_term: str) -> Tuple[str, str]:
     """
     a function that return the lemma of the head word of a noun phrase
     :param couple_term: a term (noun phrase)
@@ -92,7 +113,7 @@ def head_and_lemma(couple_term):
             lem = lemma.lemmatize(couple_term)
         except:
             lem = couple_term
-            print ("exception")
+            print("exception")
         return couple_term, lem
     nn = 0
     text = word_tokenize(couple_term)
@@ -104,7 +125,8 @@ def head_and_lemma(couple_term):
     i = 0
     word = ""
     for tag in tags:
-        if str(tag[1]).__eq__("IN") or (ConjFlag and str(tag[1]).__eq__(",")) or (ConjFlag and str(tag[1]).__eq__("CC")):
+        if str(tag[1]).__eq__("IN") or (ConjFlag and str(tag[1]).__eq__(",")) or (
+                ConjFlag and str(tag[1]).__eq__("CC")):
             break
         if str(tag[1]).__contains__("NN"):
             word = tag[0]
@@ -113,5 +135,20 @@ def head_and_lemma(couple_term):
         lem = lemma.lemmatize(word)
     except:
         lem = word
-        print ("exception")
+        print("exception")
     return word, lem
+
+
+def remove_first_occurrences_stopwords(text: str) -> str:
+    """
+    :param text: text string
+    :return: the text after removing the first occurrences of stop words in the text
+    """
+    if text == "":
+        return text
+    words = text.split()
+    if words[0] in stopWords:
+        text = str("s" + text + " ").replace("s" + words[0] + " ", "").strip()
+        return remove_first_occurrences_stopwords(text)
+    else:
+        return text

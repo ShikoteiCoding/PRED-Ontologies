@@ -1,0 +1,107 @@
+[(case-->, hyper_dep)(NP, hyper, NNS)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, hyper_dep, hypo, nmod:such_as<--)(and_label, and_lemma, CC)];;68.07%
+[(NP, hyper, NN)(nsubj-->, hypo_dep, who_label, who_lemma, WP)(NP, hyper_dep, hypo, NN, acl:relcl<--)];;100.0%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, hyper)(hyper_dep, acl:relcl<--)(NP, NN)];;77.22%
+[(NP, hyper)(case-->, JJ, such_label, such_lemma, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, NNS, hyper_dep, hypo, nmod:such_as<--)(IN, case-->)(NP)];;9.8%
+[(NP, hypo)(or_label, or_lemma, CC, cc<--, hypo_dep)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, hypo_dep, hyper, conj:or<--)];;64.71%
+[(NP, hyper)(including_label, include_lemma, VBG, case-->, hypo_dep)(NP, hypo, nmod:including<--, hyper_dep)];;100.0%
+[(NP, hypo)(hypo_dep, and_label, and_lemma, CC, cc<--)(amod-->, other_label, other_lemma, JJ, hyper_dep)(NP, hypo_dep, hyper, conj:and<--)];;64.71%
+[(NP)(NP)(NP, hypo, nsubj-->, hyper_dep, NNS)(hyper_dep, be_lemma, cop-->)(NP, hyper)];;3.9%
+[(IN, case-->, hyper_dep, in_label, in_lemma)(NP, hyper, nmod:in<--)(case-->, including_label, include_lemma, VBG, hypo_dep)(hyper_dep, NP, hypo, NN, nmod:including<--)];;100.0%
+[(NP, hyper, NNS)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, hyper_dep, hypo, nmod:such_as<--)(hypo_dep, and_label, and_lemma, CC)(NP)];;70.45%
+[(NP, hypo, NN, hyper_dep, compound-->)(hypo_dep, CC, cc<--)(hypo_dep, JJ)(NP, hyper, NNS)];;86.0%
+[(NP, hyper)(case-->, hypo_dep, IN, like_label, like_lemma)(NP, hyper_dep, hypo, nmod:like<--)];;86.0%
+[(NP, hyper)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, hyper_dep, hypo, nmod:such_as<--)];;48.57%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, hyper)(NP, NN, hyper_dep)];;57.44%
+[(NP)(NP, NN)(IN)(NP, hyper, NNS)(case-->, including_label, include_lemma, VBG, hypo_dep)(hyper_dep, NP, hypo, NN, nmod:including<--)(hypo_dep, and_label, and_lemma, CC, cc<--)];;100.0%
+[(NP, NNS)(NP, hyper, NNS)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, hyper_dep, hypo, nmod:such_as<--)];;53.8%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, NN, hyper, root<--, null_dep)(NP)];;65.81%
+[(several_label, several_lemma, JJ, amod-->)(NP, hyper, NNS)(case-->, including_label, include_lemma, VBG, hypo_dep)(hyper_dep, NP, hypo, NN, nmod:including<--)];;100.0%
+[(case-->, hypo_dep)(NP, hypo)(hypo_dep, and_label, and_lemma, CC, cc<--)(amod-->, other_label, other_lemma, JJ, hyper_dep)(NP, NNS, hypo_dep, hyper, conj:and<--, country_lemma)];;100.0%
+[(NP, hyper, NNS)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, hyper_dep, hypo, nmod:such_as<--)(NP)(cc<--)];;58.55%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, NN, hyper, root<--, null_dep)(nsubj-->)];;63.22%
+[(NP, hyper, NN)(case-->, hypo_dep, IN, from_label, from_lemma)(NP, hyper_dep, hypo, NN, nmod:from<--)];;73.0%
+[(NP, hyper, NNS)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, NN, hyper_dep, hypo, nmod:such_as<--)(NP)(NP)];;55.11%
+[(root<--, null_dep)(NP)(hyper_dep, amod-->)(NP, hyper, genre_lemma, NNS)(case-->, including_label, include_lemma, VBG, hypo_dep)(hyper_dep, NP, hypo, NN, nmod:including<--)(and_label, and_lemma, CC, cc<--)];;100.0%
+[(NP, hyper, NN)(case-->, JJ, hypo_dep, other_label, other_lemma)(case-->, hypo_dep, than_label, than_lemma, IN)(NP, hyper_dep, hypo, nmod:than<--)];;100.0%
+[(nmod:poss-->, hypo_dep)(NP, NN, nsubj-->, hypo, hyper_dep)(hyper_dep, be_lemma, cop-->, is_label, VBZ)(NP, hyper)];;8.21%
+[(NP)(NP, hypo, NN)(CC, cc<--, hypo_dep, and_label, and_lemma)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, hypo_dep, hyper, NNS, conj:and<--)];;76.19%
+[(hyper, NP)(especially_lemma, advmod<--, hyper_dep)(dep<--, hypo, hyper_dep, NP)];;100.0%
+[(NP, NN, hypo)(CC, cc<--, hypo_dep, or_label, or_lemma)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, NN, hypo_dep, hyper, conj:or<--, person_lemma)];;100.0%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, NN, hyper)(NP, hyper_dep)];;59.26%
+[(NP, hyper)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, hyper_dep, hypo, nmod:such_as<--)(hypo_dep, and_label, and_lemma, CC, cc<--)(NP)];;56.29%
+[(NP)(case-->, hypo_dep)(NP, hypo)(hypo_dep, and_label, and_lemma, CC, cc<--)(amod-->, other_label, other_lemma, JJ, hyper_dep)(NP, hypo_dep, hyper, conj:and<--)];;64.71%
+[(root<--, null_dep)(NP, NN)(NP, NN)(NP, hypo)(hypo_dep, and_label, and_lemma, CC, cc<--)(amod-->, other_label, other_lemma, JJ, hyper_dep)(NP, NNS, hypo_dep, hyper, conj:and<--)];;66.67%
+[(VBZ, root<--, null_dep)(NP, hyper)(case-->, including_label, include_lemma, VBG, hypo_dep)(hyper_dep, NP, hypo, NN, nmod:including<--)];;91.3%
+[(NP, NN, hypo)(CC, cc<--, hypo_dep, or_label, or_lemma)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, NN, hypo_dep, hyper, conj:or<--)(IN)];;73.08%
+[(NP, hyper, genre_lemma, NNS)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, hyper_dep, hypo, nmod:such_as<--)];;78.95%
+[(NP, NN)(IN, case-->, hyper_dep)(NP, hyper, genre_lemma, NNS)(case-->, including_label, include_lemma, VBG, hypo_dep)(hyper_dep, NP, hypo, NN, nmod:including<--)(and_label, and_lemma, CC, cc<--)];;100.0%
+[(NP, hyper)(hyper_dep, VBG, acl<--, ranging_label, range_lemma)(case-->, hypo_dep, IN, from_label, from_lemma)(NP, hypo, nmod:from<--, range_dep)];;100.0%
+[(NP, hyper)(NP, NNS)(including_label, include_lemma, VBG, case-->, hypo_dep)(NP, hyper_dep, hypo, nmod:including<--)];;5.43%
+[(NP, hypo, NN, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, NN, hyper)];;54.78%
+[(NP, hypo, NN, hyper_dep, compound-->)(hypo_dep, CC, cc<--)(JJ, other_label, other_lemma)(NP, hyper)];;100.0%
+[(NP, hypo, NN, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->, VBD)(NP, hyper)];;62.2%
+[(case-->, hypo_dep)(NP, hypo)(hypo_dep, and_label, and_lemma, CC, cc<--)(amod-->, JJ, hyper_dep)(amod-->, other_label, other_lemma, JJ, hyper_dep)(NP, NNS, hypo_dep, hyper, conj:and<--)];;67.86%
+[(NP, NN, hypo)(hypo_dep, and_label, and_lemma, CC, cc<--)(amod-->, other_label, other_lemma, JJ, hyper_dep)(NP, NNS, hypo_dep, hyper, conj:and<--, country_lemma)];;100.0%
+[(NP, hyper)(case-->, including_label, include_lemma, VBG, hypo_dep)(hyper_dep, NP, hypo, nmod:including<--)(hypo_dep, and_label, and_lemma, CC, cc<--)(conj:and<--)];;65.71%
+[(NP, hypo)(hypo_dep, and_label, and_lemma, CC, cc<--)(amod-->, other_label, other_lemma, JJ, hyper_dep)(NP, NNS, hypo_dep, hyper, conj:and<--, genre_lemma)];;100.0%
+[(NP, hyper)(NP)(case-->, JJ, such_label, such_lemma, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, hyper_dep, hypo, nmod:such_as<--)];;2.56%
+[(NP, hypo)(CC, cc<--, hypo_dep, or_label, or_lemma)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, hypo_dep, hyper, conj:or<--)];;64.71%
+[(NP, NN)(NP, hypo)(and_label, and_lemma, CC, cc<--, hypo_dep)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, NNS, conj:and<--, hypo_dep, hyper, organ_lemma)];;100.0%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, is_label, be_lemma, VBZ, cop-->)(NP, NN, hyper, country_lemma)];;100.0%
+[(NP, hypo, NN, nsubj-->, hyper_dep)(hyper_dep, is_label, be_lemma, VBZ, cop-->)(NP, NN, hyper)];;53.79%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, NN, hyper)(case-->)(NP)];;56.25%
+[(compound-->)(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->, VBZ)(NP, hyper)];;2.63%
+[(NP, hyper)(case-->, hypo_dep, IN, like_label, like_lemma)(NP, hypo, hyper_dep, nmod:like<--)];;86%
+[(NP)(NP, NN, hypo)(and_label, and_lemma, CC, cc<--, hypo_dep)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, NNS, conj:and<--, hypo_dep, hyper, organ_lemma)];;100.0%
+[(NP, hypo)(and_label, and_lemma, CC, cc<--, hypo_dep)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, conj:and<--, hypo_dep, hyper)];;64.71%
+[(NP, hyper)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, hypo, hyper_dep, nmod:such_as<--)];;48.57%
+[(NP)(case-->, hypo_dep)(NP, hypo)(and_label, and_lemma, CC, cc<--, hypo_dep)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, conj:and<--, hypo_dep, hyper)];;64.71%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, NN, hyper, country_lemma, root<--, null_dep)];;100.0%
+[(root<--, null_dep)(NP)(IN)(NP, hyper)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, hyper_dep, hypo, nmod:such_as<--)];;54.75%
+[(NP, NN, hypo)(CC, cc<--, hypo_dep, or_label, or_lemma)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, hypo_dep, hyper, conj:or<--)(NP)];;68.09%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, hyper, root<--, null_dep)(case-->)];;68.57%
+[(such_label, such_lemma, JJ, amod-->, hyper_dep)(NP, hyper)(as_label, as_lemma, IN, case-->, hypo_dep)(NP, hypo, nmod:as<--)];;100.0%
+[(in_label, in_lemma, IN, case-->)(NP)(case-->)(NP, hypo)(hypo_dep, and_label, and_lemma, CC, cc<--)(amod-->, other_label, other_lemma, JJ, hyper_dep)(NP, NNS, hypo_dep, hyper, conj:and<--)];;80.95%
+[(NP, hypo, NN, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, NN, hyper)(IN)];;56.76%
+[(NP, hypo)(hypo_dep, or_label, or_lemma, CC, cc<--)(amod-->, other_label, other_lemma, JJ, hyper_dep)(NP, hypo_dep, hyper, conj:or<--)];;64.71%
+[(NP)(in_label, in_lemma, IN, case-->)(NP, hypo)(hypo_dep, and_label, and_lemma, CC, cc<--)(amod-->, other_label, other_lemma, JJ, hyper_dep)(NP, NNS, hypo_dep, hyper, conj:and<--)];;84.62%
+[(case-->, hyper_dep)(NP, hyper, NNS)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, hyper_dep, hypo, nmod:such_as<--)(cc<--)];;67.2%
+[(NP, hypo, NN, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, hyper)(NP)];;55.34%
+[(VBN)(JJ, amod-->)(NP, hyper, NNS)(case-->, including_label, include_lemma, VBG, hypo_dep)(hyper_dep, NP, hypo, nmod:including<--)];;81.48%
+[(case-->, hyper_dep)(NP, hyper)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, NN, hyper_dep, hypo, nmod:such_as<--)(NP)(NP)];;63.91%
+[(case-->, hyper_dep)(NP, hyper)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, hyper_dep, hypo, nmod:such_as<--)(hypo_dep, and_label, and_lemma, CC, cc<--)];;69.23%
+[(nsubj-->)(VBZ)(NP)(NP, hyper, NNS)(case-->, including_label, include_lemma, VBG, hypo_dep)(hyper_dep, NP, hypo, nmod:including<--)(and_label, and_lemma, CC, cc<--)];;100.0%
+[(NP, hyper_dep, hypo, NN, compound-->)(CC, cc<--, hypo_dep)(JJ, hypo_dep)(NP, hyper)];;67%
+[(VBN)(IN)(NP, hyper, NNS)(case-->, including_label, include_lemma, VBG, hypo_dep)(hyper_dep, NP, hypo, NN, nmod:including<--)(hypo_dep, and_label, and_lemma, CC, cc<--)];;100.0%
+[(NP, hypo, NN, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, hyper, root<--, null_dep)];;58.65%
+[(NP, hyper, NN)(case-->, including_label, include_lemma, VBG, hypo_dep)(NP, hyper_dep, hypo, nmod:including<--)(NP)];;5.32%
+[(NP, NN)(NP, hypo)(or_label, or_lemma, CC, cc<--, hypo_dep)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, NN, hypo_dep, hyper, conj:or<--)];;100.0%
+[(NP, NN)(case-->, hyper_dep)(NP, hyper, NNS)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, NN, hyper_dep, hypo, nmod:such_as<--)];;57.86%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, NN, hyper)(acl:relcl<--)];;63.53%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, NN, hyper, band_lemma)];;93.75%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, hyper, root<--, null_dep)(NP)];;55.23%
+[(NP, nsubj-->, hypo, hyper_dep)(be_lemma, cop-->, hyper_dep)(case-->)(NP, hyper)];;7.24%
+[(in_label, in_lemma, IN, case-->)(NP, hypo)(hypo_dep, and_label, and_lemma, CC, cc<--)(amod-->, other_label, other_lemma, JJ, hyper_dep)(NP, NNS, hypo_dep, hyper, conj:and<--, country_lemma)];;100.0%
+[(NP, hypo, NN, brain_lemma)(CC, cc<--, hypo_dep, and_label, and_lemma)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, hypo_dep, hyper, NNS, organ_lemma, conj:and<--)];;100.0%
+[(VBZ)(IN, case-->, hyper_dep)(NP, hyper, NNS)(case-->, including_label, include_lemma, VBG, hypo_dep)(hyper_dep, NP, hypo, NN, nmod:including<--)(and_label, and_lemma, CC, cc<--)];;100.0%
+[(NP, hypo)(CC, cc<--, hypo_dep, and_label, and_lemma)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, hypo_dep, hyper, NNS, conj:and<--)(NP, NN)];;82.35%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, NN, hyper)(that_label, that_lemma)];;65.71%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, is_label, be_lemma, VBZ, cop-->)(NP, NN, hyper)];;52.71%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, NN, hyper)(IN)(NP, appos<--)];;86.11%
+[(VBZ)(NP, hyper)(case-->, including_label, include_lemma, VBG, hypo_dep)(hyper_dep, NP, hypo, NN, nmod:including<--)(hypo_dep, and_label, and_lemma, CC, cc<--)];;95.24%
+[(NP)(hypo_dep, case-->)(NP, hypo)(CC, cc<--, hypo_dep, and_label, and_lemma)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, hypo_dep, hyper, NNS, conj:and<--)];;73.91%
+[(NP, hyper, NNS)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, hyper_dep, hypo, nmod:such_as<--)(NP)(CC)(NP)];;59.06%
+[(NP)(VB)(IN, case-->)(NP, hyper)(including_label, include_lemma, VBG, case-->, hypo_dep)(NP, hyper_dep, hypo, nmod:including<--)];;3.37%
+[(NP, hypo)(CC, cc<--, hypo_dep, or_label, or_lemma)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, hypo_dep, hyper, conj:or<--)(NP, NN)];;67.31%
+[(NP, hyper, NN)(case-->, including_label, include_lemma, VBG, hypo_dep)(NP, NN, hyper_dep, hypo, nmod:including<--)];;6.73%
+[(NP, hypo, dobj<--)(hypo_dep, and_label, and_lemma, CC, cc<--)(amod-->, other_label, other_lemma, JJ, hyper_dep)(NP, NNS, hypo_dep, hyper, conj:and<--)];;80.0%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(NP, NN, hyper, root<--, null_dep)(IN)];;58.63%
+[(NP)(IN, case-->, hyper_dep)(NP, hyper, NNS)(case-->, such_label, such_lemma, JJ, hypo_dep)(IN, as_label, as_lemma, mwe<--, such_dep)(NP, hyper_dep, hypo, nmod:such_as<--)];;55.88%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, be_lemma, cop-->)(hyper_dep, amod-->)(NP, NN, hyper)];;56.64%
+[(NP)(NP, NN)(hyper_dep, JJ, amod-->)(NP, hyper, NNS)(case-->, including_label, include_lemma, VBG, hypo_dep)(hyper_dep, NP, hypo, NN, nmod:including<--)];;100.0%
+[(NP, hypo, NN, hyper_dep, compound-->)(hypo_dep, CC, cc<--)(JJ, other_label, other_lemma)(NP, hyper, NNS)];;100.0%
+[(NP, NN, hypo, dobj<--)(hypo_dep, and_label, and_lemma, CC, cc<--)(amod-->, other_label, other_lemma, JJ, hyper_dep)(NP, hypo_dep, hyper, conj:and<--)];;65.62%
+[(NP)(case-->)(NP, hypo, NN)(or_label, or_lemma, CC, cc<--, hypo_dep)(other_label, other_lemma, JJ, amod-->, hyper_dep)(NP, NN, hypo_dep, hyper, conj:or<--)];;100.0%
+[(NP, hypo, nsubj-->, hyper_dep)(hyper_dep, is_label, be_lemma, VBZ, cop-->)(NP, NN, hyper, root<--, null_dep)(hyper_dep, acl:relcl<--)];;78.38%
+[(NP, NN)(VBZ)(hyper_dep, JJ, amod-->)(NP, hyper, NNS)(case-->, including_label, include_lemma, VBG, hypo_dep)(hyper_dep, NP, hypo, NN, nmod:including<--)];;100.0%
+[(NP, nsubj-->, hypo, hyper_dep)(be_lemma, cop-->, hyper_dep)(IN)(NP, hyper)];;5.62%

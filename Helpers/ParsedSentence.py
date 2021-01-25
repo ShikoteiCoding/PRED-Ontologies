@@ -1,7 +1,7 @@
 from typing import List, Set, Optional
 
 
-class parsed_sentence:
+class ParsedSentence:
     def __init__(self):
         self.id = -1
         self.words = []
@@ -147,11 +147,11 @@ class parsed_sentence:
         return s
 
     def add_word(self, w: str, l: str, pos, i, par, parent_index, rel, ty) -> None:
-        word = parsed_word(w, l, pos, i, par, parent_index, rel, ty)
+        word = ParsedWord(w, l, pos, i, par, parent_index, rel, ty)
         self.words.append(word)
 
     def add_NP(self, np, root, ri, start, end) -> None:
-        np2 = noun_phrase(np, root, ri, start, end)
+        np2 = NounPhrase(np, root, ri, start, end)
         self.NPs.append(np2)
 
     def __repr__(self):
@@ -161,7 +161,7 @@ class parsed_sentence:
         return " ".join([word.word for word in self.words])
 
 
-class parsed_word:
+class ParsedWord:
     def __init__(self, w, l, pos, i, par, parent_index, rel, ty):
         self.word = w
         self.lemma = l
@@ -181,7 +181,7 @@ class parsed_word:
             self.parent_index) + ", " + self.dep_rel + ", " + self.type + ")"
 
 
-class noun_phrase:
+class NounPhrase:
     def __init__(self, np, root, ri, start, end):
         self.text = np
         self.root = root
