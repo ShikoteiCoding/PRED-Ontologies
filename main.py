@@ -4,7 +4,6 @@ from Helpers import SP_matching as spm
 from Helpers.HyperHypoCouple import HHCouple, NHHCouple
 import pandas as pd
 import gc
-from Helpers import ParsedSentence as ps
 
 # Folders
 dataset_path = "Dataset/"
@@ -14,7 +13,7 @@ spm_path = "Sequential Patterns/"
 corpus_file_name = "2B_music_bioreviews_tokenized_processed.txt"
 spm_file_name = "sequential_patterns.txt"
 couple_file_name = "Music.all"  # labeled couple dataset
-first_dataset_name = "first_dataset.csv"
+first_dataset_name = "first_dataset.csv"  # dataset of positive couples extracted from the first iteration + negative couples
 
 # Total paths
 path_to_corpus = dataset_path + corpus_file_name
@@ -38,7 +37,7 @@ def parse_pattern_file(path_to_corpus: str) -> List[Tuple[str, float]]:
         line = line.replace('\n', '').split(";;")
         pattern = line[0]
         precision = float(line[1].replace('%', '')) / 100
-        list_of_patterns.append([pattern, precision])
+        list_of_patterns.append((pattern, precision))
     f.close()
     return list_of_patterns
 
@@ -48,7 +47,7 @@ def select_patterns(patterns: List[Tuple[str, float]], SP_TH) -> List[str]:
         Return a list of patterns with precision above the threshold
         :param patterns: List of patterns with precision; SP_TH: threshold
         :return List[str]:
-        """
+    """
     list_of_patterns = []
     for line in patterns:
         pattern, precision = line[0], line[1]
@@ -59,6 +58,14 @@ def select_patterns(patterns: List[Tuple[str, float]], SP_TH) -> List[str]:
 
 def extract_patterns(path_to_corpus: str, list_of_patterns: List[str], core_concepts: List[str], limit: int) -> List[
     HHCouple]:
+    """
+    Extract a list of hypernymy couples based on high precision patterns and core concepts
+    :param path_to_corpus: path of the corpus file
+    :param list_of_patterns: patterns with precision above threshold
+    :param core_concepts: core concept as hypernym
+    :param limit: max of sentences; for test proposes
+    :return: list of hypernymy couples where the hypernym is in core_concepts
+    """
     # Count
     count = 0
 
@@ -89,12 +96,17 @@ def extract_patterns(path_to_corpus: str, list_of_patterns: List[str], core_conc
         if count % 100 == 0:
             gc.collect()
             if count % 500 == 0:
-                print(count/100)
+                print(count)
     print("count = ", count)
     return extracted_couples
 
 
 def get_negative_set(path: str) -> List[NHHCouple]:
+    """
+    Generate a list of non hypernymy couple based on labeled dataset
+    :param path: path of the labeled dataset
+    :return: list of non hypernymy couple
+    """
     negative_dataset = []
     with open(path, 'r') as f:
         lines = f.readlines()
@@ -107,16 +119,30 @@ def get_negative_set(path: str) -> List[NHHCouple]:
     return negative_dataset
 
 
-def merge_dataset(positive_set: List[HHCouple], negative_set: List[NHHCouple]) -> List[List[str]]:
+def merge_dataset(positive_set: List[HHCouple], negative_set: List[NHHCouple]) -> pd.DataFrame:
+    """
+    return a DataFrame that combines positive and negative hypernymy set
+    :param positive_set:
+    :param negative_set:
+    :return:
+    """
     dataset_list = []
     for HHCouple in positive_set:
         dataset_list.append([HHCouple.hyponym, HHCouple.hypernym, 'True'])
     for NHHCouple in negative_set:
         dataset_list.append([NHHCouple.nhypo, NHHCouple.nhyper, 'False'])
-    return dataset_list
+    df = pd.DataFrame(dataset_list)
+    df.drop_duplicates(inplace=True)
+    del dataset_list
+    return df
 
 
 def count_lines(file_name):
+    """
+    return the number of line of a file
+    :param file_name:
+    :return:
+    """
     lines = 0
     for _ in open(file_name, 'rb'):
         lines += 1
@@ -125,14 +151,12 @@ def count_lines(file_name):
 
 if __name__ == "__main__":
     # print(count_lines(path_to_corpus)) # 29110382
+    core_concepts = ["music"]
+
     negative_set = get_negative_set(path_to_couple)
     list_of_patterns = select_patterns(parse_pattern_file(path_to_spm), SP_TH)
-
-    core_concepts = ["music"]
-    iter1_couples = extract_patterns(path_to_corpus, list_of_patterns, core_concepts, 99999999)
-    merged_dataset = merge_dataset(iter1_couples, negative_set)
-    df = pd.DataFrame(merged_dataset)
-    df.to_csv(path_to_first_dataset)
-    print(df[df[1] == 'music'])
+    iter1_couples = extract_patterns(path_to_corpus, list_of_patterns, core_concepts, 100000)
+    iter1_dataset = merge_dataset(iter1_couples, negative_set)
+    iter1_dataset.to_csv(path_to_first_dataset)
+    print(iter1_dataset[iter1_dataset[1] == 'music'])
     # print(iter1_couples)
-
