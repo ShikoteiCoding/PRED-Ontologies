@@ -104,10 +104,8 @@ def spm_matching(pattern: str, parsed_sentence: str, mingap=0, maxgap=3) -> Tupl
             dephypo = get_dep_from_edge(depHypoEdge)
             if hypo.strip() == dephypo.strip():
                 flag2 = True
-                del depHypoEdge, dephypo
             else:
                 flag2 = False
-                del depHypoEdge, dephypo
                 break
         if not flag2 and len(hypoDep) > 0:
             continue
@@ -123,9 +121,7 @@ def spm_matching(pattern: str, parsed_sentence: str, mingap=0, maxgap=3) -> Tupl
             if hhc in hhCouples or hhc.hyponym == hhc.hypernym or hhc.hyponym == "" or hhc.hypernym == "":
                 continue
             hhCouples.append(hhc)
-            del hhc
-        del cohypos, hypo, hypoEdge, hypoNP
-    del pathEdges, patternEdges, edgeMatching, hyperDep, hypoDep, matchings, li, hyperNP
+
     if len(hhCouples) == 0:
         return False, [], ""
     return True, hhCouples, pattern
@@ -140,5 +136,4 @@ def co_hyponym_extraction(pathEdges, hypo_lemma, hypo_index) -> List:
                 hypo_NP = pEdge[0].replace("_label", "").replace("_", " ")
                 hypo_NP = cf.remove_first_occurrences_stopwords(hypo_NP)
                 coHypos.append(hypo_NP)
-                del hypo_NP
     return coHypos

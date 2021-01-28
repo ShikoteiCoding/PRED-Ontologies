@@ -62,8 +62,7 @@ class ParsedSentence:
                     if word_h == "hypo, " or word_h == "hyper, ":
                         s += "(NP, " + word_h + word.lemma + "_lemma, " + word.pos + ", " + word.dep_rel + ", " + parent + "_dep), "
                     else:
-                        s += "(" + np.text.replace(" ",
-                                                   "_") + "_label, NP, " + word_h + word.lemma + "_lemma, " + word.pos + ", " + word.dep_rel + ", " + parent + "_dep), "
+                        s += "(" + np.text.replace(" ",  "_") + "_label, NP, " + word_h + word.lemma + "_lemma, " + word.pos + ", " + word.dep_rel + ", " + parent + "_dep), "
             else:
                 if word_h == "hypo, " and parent == "hypo":
                     continue

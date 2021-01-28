@@ -18,7 +18,6 @@ def sequenceMatching(edgeMatching, mingap=0, maxgap=0):
     for mat in all_combinations:
         if check_gap(mat, mingap, maxgap):
             all_matchings.append(list(mat))
-    del all_combinations  # prevent memory error
     return all_matchings
 
 
