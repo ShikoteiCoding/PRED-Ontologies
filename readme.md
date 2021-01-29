@@ -46,3 +46,8 @@ $python -m spacy download en_core_web_sm
         pattern: a sequential pattern
         parsed_sentence: a parsed sentence
         see more details in SP_matching.py
+
+core_concept = ['music', 'activity', 'arrangement', 'instrument', composition, genre, instrumentation, artist, 'event', 'performance', 'singer', 'recording', 'group', 'record', 'label', 'remix', ]
+
+
+

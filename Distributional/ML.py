@@ -6,7 +6,7 @@ import os
 import json
 from gensim.models import Word2Vec
 from pandas import DataFrame
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Set
 from Distributional import Word2VecFuns
 from Distributional.Word2VecFuns import get_embedding
 from Helpers import core_functions as cf
@@ -20,18 +20,72 @@ sentence_folder = '../Dataset/sentences/'
 
 
 def test():
-    model = create_word2vec_model('../Dataset/sentences/sliced_files/', 'without_number')
+    filter_NP('../Dataset/NPs/all_NPs.txt')
+    # model = create_word2vec_model('../Dataset/sentences/sliced_files/', 'without_number')
+
+
+
+def lower_NPs_refilter(path):
+    result = []
+    count = 0
+    with open(path, 'r') as f:
+        NPs = json.load(f)
+    for couple in NPs:
+        isSave = True
+        if '.' in couple:  # compilation.The cons
+            couple = couple[:couple.index('.')]  # compilation
+        if couple.isupper(): # MY LOINS TREMBLE
+            continue
+        if not couple.istitle():
+            couple = couple.lower()
+        for word in couple.split():
+            if word.isdigit() or word in get_stopwords():
+                isSave = False
+                break
+        if isSave:
+            count += 1
+            result.append(couple)
+        if count % 1000 ==0:
+            print(count)
+    print(count)
+    with open(path.replace('.txt', '-refiltered.txt'), 'w') as fout:
+        json.dump(list(set(result)), fout)
+
+
+
+
+def get_stopwords() -> Set:
+    result = set()
     stop = cf.stopWords
     stop.add(x for x in stopwords.words("english"))
     stop.add("The")
-    all = []
-    for i in range(1, 10):
-        filtered = filter_NP('../Dataset/NPs/NPs/0%d_NPs.txt' % i, model, stop)
-        all.extend(filtered)
-    print(len(all))
-    with open('../Dataset/NPs/all_NPs_filtered_third try.txt', 'w') as f:
-        json.dump(list(set(all)), f)
-
+    stop.add("This")
+    stop.add("seven")
+    stop.add("especially")
+    stop.add("other")
+    stop.add("major")
+    stop.add("numerous")
+    stop.add("different")
+    stop.add("new")
+    stop.add("newer")
+    stop.add("primary")
+    stop.add("previous")
+    stop.add("slower")
+    stop.add("similar")
+    stop.add("recent")
+    stop.add("later")
+    stop.add("better")
+    stop.add("biggest")
+    stop.add("good")
+    stop.add("a")
+    while len(stop) > 0:
+        try:
+            word = stop.pop()
+            result.add(word)
+            result.add(word.title())
+        except:
+            pass
+    return result
 
 def create_word2vec_model(sentence_folder, model_name=None, isSave=True) -> Word2Vec:  # hyper parameter
     """
@@ -77,24 +131,33 @@ def dt_to_embeddings(couples: DataFrame, model: Word2Vec) -> DataFrame:
     return dt_embeddings
 
 
-def filter_NP(path_to_NP, model: Word2Vec, STOPWORDS):
+def filter_NP(path_to_NP, model: Word2Vec, STOPWORDS): #TODO: rerun this after getting 00_NPs
     """
     filter the NPs that are not in the vocabulary of the model
     """
     saved_NPs = []
     with open(path_to_NP, "r") as f:
         origin_NPs = json.load(f)
-        print(origin_NPs)
     for NP in origin_NPs:
         is_save = False
-        for word in NP.split():
-            if word in STOPWORDS:
+        if '.' in NP:  # compilation.The cons
+            NP = NP[:NP.index('.')]  # compilation
+        if NP.isupper():  # MY LOINS TREMBLE
+            continue
+        if not NP.istitle():
+            NP = NP.lower()
+        words = NP.split()
+        if len(words) > 3:
+            continue
+        for word in words:
+            if word.isdigit() or word in STOPWORDS:
                 is_save = False
                 break
             if word in model.wv:
                 is_save = True
         if is_save:
             saved_NPs.append(NP)
+    saved_NPs = list(set(saved_NPs))
     with open(path_to_NP.replace('.txt', '-filtered.txt'), 'w') as f_out:
         json.dump(saved_NPs, f_out)
     return saved_NPs

@@ -23,3 +23,8 @@ estimated required memory for 50838 words and 300 dimensions: 147430200 bytes
 
 
 After filtering with single number appearance, we got 1992488 NPs
+
+Forth try of filtering NPs:
+Added more stop words, and filter NP that is longer than 3 words, and we got 1242839 NPs
+
+removed influence of first capital letter in a sentence and we got : 1055942 NPs

@@ -13,7 +13,7 @@ from Distributional.SentenceGenerator import SentenceGenerator
 from spacy.lang.en.stop_words import STOP_WORDS
 
 
-def _sentence_to_wordlist(sentence: str, remove_stopwords=False) -> list[str]:
+def sentence_to_wordlist(sentence: str, remove_stopwords=False) -> list[str]:
     """
     return a list of words for the sentence
     :return:
@@ -42,7 +42,7 @@ def _corpus_to_sentences(path_to_corpus: str, remove_stopwords=False) -> List[Li
     sentences = []
     for raw_sentence in raw_sentences:
         if len(raw_sentence) > 0:
-            sentences.append(_sentence_to_wordlist(raw_sentence, remove_stopwords))
+            sentences.append(sentence_to_wordlist(raw_sentence, remove_stopwords))
     return sentences
 
 

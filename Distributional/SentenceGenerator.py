@@ -1,4 +1,5 @@
 import os
+import re
 
 
 class SentenceGenerator(object):  # A generator that returns line of all files in the given path
