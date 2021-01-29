@@ -6,6 +6,8 @@ from nltk import WordNetLemmatizer
 import spacy
 import gzip
 import pandas as pd
+from nltk.corpus import stopwords
+
 from Helpers import ParsedSentence as ps
 from Helpers.ParsedSentence import ParsedSentence
 from spacy.lang.en.stop_words import STOP_WORDS
@@ -29,7 +31,6 @@ stopWords.add("later")
 stopWords.add("better")
 stopWords.add("biggest")
 stopWords.add("good")
-
 
 
 def get_sentences(corpus_file: str) -> Generator[ParsedSentence, None, None]:
@@ -158,3 +159,4 @@ def remove_first_occurrences_stopwords(text: str) -> str:
         return remove_first_occurrences_stopwords(text)
     else:
         return text
+

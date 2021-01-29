@@ -5,6 +5,7 @@ from Helpers import SP_matching as spm
 from Helpers.HyperHypoCouple import HHCouple, NHHCouple
 import pandas as pd
 import objgraph
+import json
 
 # Folders
 dataset_path = "Dataset/"
@@ -60,6 +61,26 @@ def select_patterns(patterns: List[Tuple[str, float]], SP_TH) -> List[str]:
     return list_of_patterns
 
 
+def save_NPs(path_to_corpus: str, path_to_NPs: str):
+    NPs = set()
+    count = 0
+    # Loop over the sentences
+    for sentence in cf.get_sentences(path_to_corpus):
+        if count % 5000 == 0:
+            print(count)
+
+        if len(str(sentence)) > 500:
+            continue
+
+        # add NPs of the sentence to set
+        for np in sentence.NPs:
+            NPs.add(cf.remove_first_occurrences_stopwords(np.text))
+        count += 1
+    print(len(NPs))
+    with open(path_to_NPs, 'a', encoding='utf-8', errors='ignore') as f:
+        json.dump(list(NPs), f)
+
+
 def extract_patterns(path_to_corpus: str, list_of_patterns: List[str], core_concepts: List[str], limit: int) \
         -> (List[Tuple[HHCouple, str]], Set):
     """
@@ -76,7 +97,6 @@ def extract_patterns(path_to_corpus: str, list_of_patterns: List[str], core_conc
     # Store the couples to return in a list
     extracted_couples = []
     NPs = set()
-    f_out = open(path_to_first_corpus, 'a')
     # Loop over the sentences
     for sentence in cf.get_sentences(path_to_corpus):
         if count % 1000 == 0:
@@ -88,13 +108,12 @@ def extract_patterns(path_to_corpus: str, list_of_patterns: List[str], core_conc
         # Limit to run test
         if count > limit:
             return extracted_couples, NPs
-        f_out.write(str(sentence))
+
         sequence_representation = sentence.get_sequence_representation()
 
         # add NPs of the sentence to set
         for np in sentence.NPs:
             NPs.add(cf.remove_first_occurrences_stopwords(np.text))
-
         # Loop over the patterns
         for pattern in list_of_patterns:
             (done, hh_couples, pattern) = spm.spm_matching(pattern,
@@ -110,7 +129,6 @@ def extract_patterns(path_to_corpus: str, list_of_patterns: List[str], core_conc
         count += 1
 
     print("count = ", count)
-
     return extracted_couples, NPs
 
 
@@ -169,20 +187,29 @@ def printBat(fileNum):
         print('java -jar corpus_parsing.jar ', s)
 
 
+def _save_NPs_in_folders(path_to_folder):
+    for i in range(2, 10):
+        corpus_path = path_to_folder + str(i) + "/" + "0%d_processed.txt" % i
+        NP_path = path_to_folder + str(i) + "/" + "0%d_NPs.txt" % i
+
+        save_NPs(corpus_path, NP_path)
+
+
 if __name__ == "__main__":
-
-    # print(count_lines(path_to_corpus)) # 29110382
-    core_concepts = ["music"]
-    # tr = tracker.SummaryTracker()
-
-    negative_set = get_negative_set(path_to_couple)
-    list_of_patterns = select_patterns(parse_pattern_file(path_to_spm), SP_TH)
-    # tr.print_diff()
-    print("----------------------------------------------------------------------------")
-    iter1_couples, NPs = extract_patterns(path_to_corpus, list_of_patterns, core_concepts, 1000)
-    # tr.print_diff()
-
-    iter1_dataset = merge_dataset(iter1_couples, negative_set)
-    iter1_dataset.to_csv(path_to_first_dataset)
-    print(iter1_dataset[iter1_dataset[1] == 'music'])
-    # print(iter1_couples)
+    # _save_NPs_in_folders('Dataset/music_processed_0')
+    save_NPs('Dataset/music_processed_09/09_processed.txt', 'Dataset/music_processed_09/09_NPs.txt')
+    # # print(count_lines(path_to_corpus)) # 29110382
+    # core_concepts = ["music"]
+    # # tr = tracker.SummaryTracker()
+    #
+    # negative_set = get_negative_set(path_to_couple)
+    # list_of_patterns = select_patterns(parse_pattern_file(path_to_spm), SP_TH)
+    # # tr.print_diff()
+    # print("----------------------------------------------------------------------------")
+    # iter1_couples, NPs = extract_patterns(path_to_corpus, list_of_patterns, core_concepts, 1000)
+    # # tr.print_diff()
+    #
+    # iter1_dataset = merge_dataset(iter1_couples, negative_set)
+    # iter1_dataset.to_csv(path_to_first_dataset)
+    # print(iter1_dataset[iter1_dataset[1] == 'music'])
+    # # print(iter1_couples)

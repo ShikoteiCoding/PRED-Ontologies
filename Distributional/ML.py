@@ -1,18 +1,36 @@
+from functools import reduce
+
+import numpy as np
 import pandas as pd
 import os
 import json
 from gensim.models import Word2Vec
 from pandas import DataFrame
 from typing import List, Tuple, Dict
-
 from Distributional import Word2VecFuns
 from Distributional.Word2VecFuns import get_embedding
+from Helpers import core_functions as cf
+from nltk.corpus import stopwords
 
 # Folders
 
 word2vec_model_folder = './Models/'
 trial_path = "../Output/trial/"
 sentence_folder = '../Dataset/sentences/'
+
+
+def test():
+    model = create_word2vec_model('../Dataset/sentences/sliced_files/', 'without_number')
+    stop = cf.stopWords
+    stop.add(x for x in stopwords.words("english"))
+    stop.add("The")
+    all = []
+    for i in range(1, 10):
+        filtered = filter_NP('../Dataset/NPs/NPs/0%d_NPs.txt' % i, model, stop)
+        all.extend(filtered)
+    print(len(all))
+    with open('../Dataset/NPs/all_NPs_filtered_third try.txt', 'w') as f:
+        json.dump(list(set(all)), f)
 
 
 def create_word2vec_model(sentence_folder, model_name=None, isSave=True) -> Word2Vec:  # hyper parameter
@@ -39,9 +57,47 @@ def create_word2vec_model(sentence_folder, model_name=None, isSave=True) -> Word
 
 
 def dt_to_embeddings(couples: DataFrame, model: Word2Vec) -> DataFrame:
-    dt_embeddings = pd.DataFrame()
-    # TODO
+    """
+
+    :param couples:
+    :param model:
+    :return:
+    """
+    # couples = pd.read_csv('../Dataset/first_dataset.csv', index_col ='index',  names=['index', 'hypo', 'hyper', 'label', 'pattern'])
+    dt_embeddings = pd.DataFrame(columns=['hypo', 'hyper', 'label'])
+    for index, line in couples.iterrows():
+        try:
+            hypo = get_embedding(model, line['hypo'])
+            hyper = get_embedding(model, line['hyper'])
+            label = line['label']
+            dt_embeddings.loc[index] = [hypo, hyper, label]
+        except Exception as e:
+            # word not in vocabulary
+            continue
     return dt_embeddings
+
+
+def filter_NP(path_to_NP, model: Word2Vec, STOPWORDS):
+    """
+    filter the NPs that are not in the vocabulary of the model
+    """
+    saved_NPs = []
+    with open(path_to_NP, "r") as f:
+        origin_NPs = json.load(f)
+        print(origin_NPs)
+    for NP in origin_NPs:
+        is_save = False
+        for word in NP.split():
+            if word in STOPWORDS:
+                is_save = False
+                break
+            if word in model.wv:
+                is_save = True
+        if is_save:
+            saved_NPs.append(NP)
+    with open(path_to_NP.replace('.txt', '-filtered.txt'), 'w') as f_out:
+        json.dump(saved_NPs, f_out)
+    return saved_NPs
 
 
 def train_model():
@@ -101,15 +157,5 @@ def _get_iter_folder_path(path, iteration) -> str:
     return path + 'iter_' + str(iteration) + '/'
 
 
-# test_list = [('aa', 'bb', '0.01'), ('wh', 'hw', '9951')]
-# test_dict = '{ "name":"John", "age":30, "city":"New York"}'
-#
-#
-# save_output(test_list, test_dict, trial_path)
-# data, params = parse_output(trial_path, 3)
-# print(data)
-# print(params)
+test()
 
-model = create_word2vec_model(sentence_folder)
-embeddings = get_embedding(model, 'music')
-print(embeddings)
