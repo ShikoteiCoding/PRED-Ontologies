@@ -9,8 +9,9 @@ from bs4 import BeautifulSoup
 from typing import List
 from nltk.corpus import stopwords
 from gensim.models import word2vec, Word2Vec
-from Distributional.SentenceGenerator import SentenceGenerator
-from spacy.lang.en.stop_words import STOP_WORDS
+
+from Distributional import Generator
+from Distributional.Generator import LineGenerator
 
 
 def sentence_to_wordlist(sentence: str, remove_stopwords=False) -> list[str]:
@@ -27,7 +28,7 @@ def sentence_to_wordlist(sentence: str, remove_stopwords=False) -> list[str]:
     words = review_text.split()
     # delete stop words
     if remove_stopwords:
-        words = [w for w in words if not w in STOP_WORDS]
+        words = [w for w in words if not w in Generator.stop]
 
     return words
 
@@ -37,7 +38,7 @@ def _corpus_to_sentences(path_to_corpus: str, remove_stopwords=False) -> List[Li
     get sentences from txt file
     :return: list of words of the sentences
     """
-    raw_sentences = SentenceGenerator(path_to_corpus)
+    raw_sentences = LineGenerator(path_to_corpus)
 
     sentences = []
     for raw_sentence in raw_sentences:

@@ -20,7 +20,8 @@ sentence_folder = '../Dataset/sentences/'
 
 
 def test():
-    filter_NP('../Dataset/NPs/all_NPs.txt')
+    return None
+    # filter_NP('../Dataset/NPs/all_NPs.txt')
     # model = create_word2vec_model('../Dataset/sentences/sliced_files/', 'without_number')
 
 
@@ -57,9 +58,9 @@ def lower_NPs_refilter(path):
 def get_stopwords() -> Set:
     result = set()
     stop = cf.stopWords
-    stop.add(x for x in stopwords.words("english"))
     stop.add("The")
     stop.add("This")
+    stop.add("to")
     stop.add("seven")
     stop.add("especially")
     stop.add("other")
@@ -77,14 +78,9 @@ def get_stopwords() -> Set:
     stop.add("better")
     stop.add("biggest")
     stop.add("good")
-    stop.add("a")
-    while len(stop) > 0:
-        try:
-            word = stop.pop()
-            result.add(word)
-            result.add(word.title())
-        except:
-            pass
+    stop.add("one")
+    stop.add(x for x in stopwords.words("english"))
+
     return result
 
 def create_word2vec_model(sentence_folder, model_name=None, isSave=True) -> Word2Vec:  # hyper parameter
@@ -220,5 +216,4 @@ def _get_iter_folder_path(path, iteration) -> str:
     return path + 'iter_' + str(iteration) + '/'
 
 
-test()
 
