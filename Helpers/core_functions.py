@@ -9,6 +9,7 @@ import pandas as pd
 from nltk.corpus import stopwords
 
 from Helpers import ParsedSentence as ps
+from Helpers.Generator import LineGenerator, BasicGenerator
 from Helpers.ParsedSentence import ParsedSentence
 from spacy.lang.en.stop_words import STOP_WORDS
 
@@ -107,6 +108,69 @@ def get_sentences(corpus_file: str) -> Generator[ParsedSentence, None, None]:
                     continue
 
 
+def get_sentences_from_dir(path: str) -> Generator[ParsedSentence, None, None]:
+    """
+    Returns all the (content) sentences in a processed corpus file
+    :param path: dir path
+    :return: the next sentence (a generator function)
+    """
+    sent = ps.ParsedSentence()
+    isNP = False
+    is_root = False
+    root = ""
+    ri = 0
+    np = ""
+    np_indexes = []
+    for line in BasicGenerator(path):
+        # try:
+        #     line = str(line, "utf-8")
+        # except:
+        #     continue
+        # Ignore start and end of doc
+        if '</s>' in line and sent.id == -1:
+            continue
+        if '<text' in line or '</text' in line:
+            continue
+        if '<s id' in line:
+            sent.id = line.split("'")[1]
+            continue
+        # End of sentence
+        elif '</s>' in line:
+            yield sent
+            isNP = False
+            is_root = False
+            root = ""
+            ri = 0
+            np = ""
+            np_indexes = []
+            sent = ps.ParsedSentence()
+        elif '<NP>' in line:
+            isNP = True
+        elif '</NP>' in line:
+            isNP = False
+            if len(np_indexes) > 0:
+                sent.add_NP(np.strip(), root, ri, min(np_indexes), max(np_indexes))
+            np = ""
+            np_indexes = []
+        elif '<root>' in line:
+            is_root = True
+        elif '</root>' in line:
+            is_root = False
+        else:
+            try:
+
+                word, lemma, pos, index, parent, parent_index, dep, type = line.split("\t")
+                if is_root:
+                    root = word
+                    ri = int(index)
+                if isNP:
+                    np_indexes.append(int(index))
+                    np = np + " " + word
+                sent.add_word(word, lemma, pos, int(index), parent, int(parent_index), dep, type.strip())
+                # One of the items is a space - ignore this token
+            except Exception as e:
+                print(str(e))
+                continue
 
 
 def head_and_lemma(couple_term: str) -> Tuple[str, str]:
@@ -159,4 +223,3 @@ def remove_first_occurrences_stopwords(text: str) -> str:
         return remove_first_occurrences_stopwords(text)
     else:
         return text
-
