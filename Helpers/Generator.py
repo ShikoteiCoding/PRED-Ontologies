@@ -5,6 +5,7 @@ from spacy.lang.en.stop_words import STOP_WORDS
 stop = set(STOP_WORDS)
 stop.add("The")
 stop.add("This")
+stop.add("It")
 stop.add("to")
 stop.add("seven")
 stop.add("especially")
@@ -75,13 +76,13 @@ class TokenGenerator(object):  # A generator that returns list of words of all f
 
 
 def return_res(line, return_line, keep__=True, keep_stop=True):
-    line = re.sub("[^Ü-üa-zA-Z-_']", " ", line)
+    line = re.sub("[^Ü-üa-zA-Z-_]", " ", line)
     line = re.sub("[.]", " ", line)
     if not keep__:  # remove the original _ character to not interfere with Phraser
         line = re.sub("[_]", " ", line)
     list = line.split()
-    if len(list) > 1 and list[0].istitle() and not list[1].istitle():  # lowercase for the first letter of the sentence
-        list[0] = list[0].lower()
+    # if len(list) > 1 and list[0].istitle() and not list[1].istitle():  # lowercase for the first letter of the sentence
+    #     list[0] = list[0].lower()
     if not keep_stop:
         res = [w for w in list if w not in stop]
         return " ".join(res) if return_line else res

@@ -1,11 +1,12 @@
+import numpy as np
 import pandas as pd
 import os
 import json
 from gensim.models import Word2Vec
 from pandas import DataFrame
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Set
 from Distributional import Word2VecFuncs
-from Distributional.Word2VecFuncs import get_embedding
+from Distributional.Word2VecFuncs import get_word_embedding
 from Helpers import Generator
 from Helpers.HyperHypoCouple import HHCouple, NHHCouple
 
@@ -26,8 +27,8 @@ def depreciated_dt_to_embeddings(couples: DataFrame, model: Word2Vec) -> DataFra
     dt_embeddings = pd.DataFrame(columns=['hypo', 'hyper', 'label'])
     for index, line in couples.iterrows():
         try:
-            hypo = get_embedding(model, line['hypo'])
-            hyper = get_embedding(model, line['hyper'])
+            hypo = get_word_embedding(model, line['hypo'])
+            hyper = get_word_embedding(model, line['hyper'])
             label = line['label']
             dt_embeddings.loc[index] = [hypo, hyper, label]
         except Exception as e:
@@ -128,3 +129,4 @@ def _get_iter_folder_path(path, iteration) -> str:
 
 
 
+# def get_NP_from_dataframe(dt: DataFrame)-> Set:

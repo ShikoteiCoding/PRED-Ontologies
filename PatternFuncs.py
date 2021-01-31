@@ -1,10 +1,14 @@
+import json
 import os
+import re
 from typing import List, Generator
 import gc
 from typing import List, Tuple, Set
-
+import heapq
 from gensim.models import Word2Vec
+from pandas import DataFrame
 
+import Helpers
 from Helpers import core_functions as cf
 from Helpers import SP_matching as spm
 from Helpers.Generator import LineGenerator, stop, BasicGenerator
@@ -12,8 +16,9 @@ from Helpers.HyperHypoCouple import HHCouple, NHHCouple
 import pandas as pd
 
 
-def get_couples_from_patterns(path_to_corpus: str, list_of_patterns: List[str], hypernym_set: List[str], limit: int) \
-        -> (List[str]):
+def get_couples_from_patterns(path_to_corpus: str, list_of_patterns: List[str], hypernym_set: List[str], limit: int,
+                              isSaved=False, path_to_hhcouples=None) \
+        -> DataFrame:
     """
     Extract a list of hypernymy couples based on high precision patterns and core concepts
     :param path_to_corpus: path of the corpus file
@@ -38,7 +43,7 @@ def get_couples_from_patterns(path_to_corpus: str, list_of_patterns: List[str], 
             continue
         # Limit to run test
         if count > limit:
-            return extracted_couples
+            return pd.DataFrame(extracted_couples, columns=['hypo', 'hyper'], index=None)
 
         sequence_representation = sentence.get_sequence_representation()
 
@@ -53,7 +58,11 @@ def get_couples_from_patterns(path_to_corpus: str, list_of_patterns: List[str], 
         count += 1
 
     print("count = ", count)
-    return extracted_couples
+    df = pd.DataFrame(extracted_couples, columns=['hypo', 'hyper'], index=None)
+    if isSaved:
+        df.drop_duplicates(inplace=True)
+        df.to_csv(path_to_hhcouples, encoding='utf-8', index=False)
+    return df
 
 
 def parse_pattern_file(path_to_corpus: str) -> List[Tuple[str, float]]:
@@ -87,76 +96,101 @@ def get_reliable_patterns(patterns: List[Tuple[str, float]], SP_TH) -> List[str]
     return list_of_patterns
 
 
-def save_NPs(path_to_corpus: str, path_to_NPs: str):
-    """ save NPs into a file; can be appended """
-    NPs = set()
-    count = 0
+def extract_NPs(path_to_corpus: str, max_length: int, isSave=False, path_to_NPs=None) ->List[str]:
+    """
+    Extract NPs from corpus, filter with max length, character and stop words
+    :param path_to_corpus:
+    :param max_length:
+    :param isSave:
+    :param path_to_NPs:
+    :return:
+    """
+    NPs = []
+    progress = 0
     # Loop over the sentences
-    for sentence in cf.get_sentences_from_dir(path_to_corpus):
-        if count % 5000 == 0:
-            print("parsing %d sentences ..." % count)
+    if os.path.isdir(path_to_corpus):
+        g = cf.get_sentences_from_dir(path_to_corpus)
+    else:
+        g = cf.get_sentences(path_to_corpus)
+    for sentence in g:
+        if progress % 5000 == 0:
+            print("parsing %d sentences ..." % progress)
         if len(str(sentence)) > 500:
             continue
-        # add NPs of the sentence to set
+        # Filter NPs
         for np in sentence.NPs:
-            NPs.add(cf.remove_first_occurrences_stopwords(np.text))
-        count += 1
-    with open(path_to_NPs, 'w', encoding='utf-8', errors='ignore') as f:
-        for NP in iter(NPs):
-            f.write(NP+'\n')
+            if len(np.text.split()) > max_length:
+                continue
+            if np.text in Helpers.Generator.stop:
+                continue
+            if re.search(r'[^a-zA-Z-\'\s]', np.text):  # accept only letters and - and ' in NP
+                continue
+            if np.text in Helpers.Generator.stop:
+                continue
+
+            NPs.append(cf.remove_first_occurrences_stopwords(np.text))
+        progress += 1
+    if isSave:
+        with open(path_to_NPs, 'w', encoding='utf-8', errors='ignore') as f:
+            for NP in NPs:
+                f.write(NP+'\n')
+    return NPs
 
 
-def filter_NP(path_to_input_NPs, output_path, max_length, model: Word2Vec):
-    """    Filter the NPs with rules and those that are not in the vocabulary of the model    """
-    saved_NPs = []
-    with open(path_to_input_NPs, "r", encoding='utf-8', errors='ignore') as f:
-        origin_NPs = f.readlines()
-    for NP in origin_NPs:
-        accept = False
-        if '.' in NP:  # "compilation.The cons"
-            NP = NP[:NP.index('.')]  # "compilation"
-        if NP.isupper():  # MY LOINS TREMBLE
-            continue
-        if not NP.istitle():
-            NP = NP.lower()
-        words = NP.split()
-        if len(words) > max_length:
-            continue
-        for word in words:
-            if word.isdigit() or word in stop:
-                accept = False
-                break
-        if NP or '_'.join(words) in model.wv:  # use a w2v model that is trained with a phraser-parsed corpus
-            accept = True
-        if accept:
-            saved_NPs.append(NP)
-    saved_NPs = set(saved_NPs)
-    with open(output_path, 'w', encoding='utf-8', errors='ignore') as f_out:
-        for NP in iter(saved_NPs):
-            f_out.write(NP)
-    return saved_NPs
+def load_NPs(path_to_NPs) -> List[str]:
+    with open(path_to_NPs, 'r') as f:
+        NPs = f.read().splitlines()
+    return NPs
 
 
-def get_NPs_list(path_to_filteredNPs) -> List[str]:
-    """ Return the filtered and unique NPs """
-    with open(path_to_filteredNPs, 'r') as f:
-        NPs = f.readlines()
-    return list(set(NPs))
+def get_NPs_above_threshold(np_set, n, isSave=False, path=None) -> DataFrame:
+    """
+    get NPs that appear above n times in the corpus, return NP with its appearance count
+    :param np_set:
+    :param n: min appearance times
+    :param isSave:
+    :param path:
+    :return: DataFrame['NP', 'count']
+    """
+    dt_count = pd.value_counts(np_set).rename_axis('NP').reset_index(name='count')
+    dt_count = dt_count[dt_count['count'] >= n]
+
+    if isSave:
+        dt_count.to_csv(path, encoding='utf-8')
+    return dt_count
 
 
-def save_extracted_couples(positive_set: List[str], path):
-    df = pd.DataFrame(positive_set)
-    df.drop_duplicates(inplace=True)
-    df[2] = 'True'
-    df.columns = ['hypo', 'hyper', 'label']
-    df.to_csv(path, encoding='utf-8', index=False)
+def load_HHCouples_to_dataframe(path) -> DataFrame:
+    return pd.read_csv(path, encoding='utf-8')
+
+
+def load_HHCouples_to_list(path):
+    return load_HHCouples_to_dataframe(path).values.tolist()
+
+
+def get_hypos_with_count(dt_couples: DataFrame, dt_NPs: DataFrame, isSave=False, path=None) -> DataFrame:
+    merge = pd.merge(dt_couples, dt_NPs, left_on='hypo', right_on='NP').sort_values('count', ascending=False)
+    if isSave:
+        merge.loc[:, ['hypo', 'count']].to_csv(path, encoding='utf-8')
+    return merge
 
 
 if __name__ == "__main__":
-    list=[['a', 'b'], ['c', 'd']]
-    df = pd.DataFrame(list)
-    print(df)
-    df[2]='True'
-    df.columns=['hypo', 'hyper', 'label']
-    print(df)
-    df.to_csv('Output/test.csv')
+
+    # NPs = save_NPs('Dataset/processed_files/00_processed.txt', 'Dataset/NPs list/00_NPs_ori_list.txt')
+    # top = pd.value_counts(NPs)
+    # top.to_csv('Dataset/NPs list/00_NPs_count.csv')
+    # print(top[:100])
+    # get_NPs_above_threshold('Dataset/NPs list/00_NPs_count.csv',  30).to_csv('Dataset/NPs list/00_NPs_mincount30.csv')
+    # NPs = pd.read_csv('Dataset/NPs list/00_NPs_count.csv')
+    # NPs.columns=['np', 'count']
+    # HHCouple = pd.read_csv('Output/trial/iter_1/HHCouples.csv')
+    # HHCouple.columns=['np', 'hyper', 'label']
+    # join = pd.merge(HHCouple, NPs).sort_values('count', ascending=False)
+    # join.to_csv('Output/trial/iter_1/HHCouples count.csv')
+    # print(join)
+    # get_NPs_above_threshold('Dataset/NPs/NPs/01_NPs.txt', 100)
+    df = pd.read_csv('Output/trial/iter_1/HHCouples count.csv')
+    hypos = df[df['count']>10].np.unique()
+    for x in df[df['count']>10].np.unique():
+        print(x)
