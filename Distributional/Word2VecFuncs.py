@@ -43,9 +43,16 @@ def load_word2vec_model(model_path: str):
     return gensim.models.Word2Vec.load(model_path)
 
 
-def get_word_embedding(model, word: str):
+def get_embedding(model, word: str):
     # result = reduce(lambda x, y: model.wv[x] + model.wv[y], concept.split()) if len(word.split()) > 1
-    return model.wv[word]
+    try:
+        return model.wv[word]
+    except Exception as e:
+        return None
+
+
+def get_word_from_embedding(model, embedding):
+    return model.wv.most_similar(positive=[embedding])[0][0]
 
 
 def get_topn_similar(model, word, topn) -> List:
