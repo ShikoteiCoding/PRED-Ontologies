@@ -13,7 +13,7 @@ from Helpers.Generator import TokenGenerator
 
 # -------------------- Phraser -------------------------------------
 def build_phrases_model(sentences, min_count, threshold, progress_per) -> Phraser:
-    phrases = Phrases(sentences, min_count=min_count, threshold=threshold, progress_per=progress_per)
+    phrases = Phrases(sentences, min_count=min_count, threshold=threshold, progress_per=progress_per, scoring='npmi')
     return Phraser(phrases)
 
 

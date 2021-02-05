@@ -81,7 +81,6 @@ def return_res(line, return_line, keep__=True, keep_stop=True):
     if not keep__:  # remove the original _ character to not interfere with Phraser
         line = re.sub("[_]", " ", line)
     list = line.split()
-    # if len(list) > 1 and list[0].istitle() and not list[1].istitle():  # lowercase for the first letter of the sentence
     #     list[0] = list[0].lower()
     if not keep_stop:
         res = [w for w in list if w not in stop]

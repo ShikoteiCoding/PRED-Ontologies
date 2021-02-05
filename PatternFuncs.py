@@ -38,8 +38,8 @@ def get_couples_from_patterns(path_to_corpus: str, list_of_patterns: List[str], 
         else cf.get_sentences(path_to_corpus)
 
     for sentence in sentences:
-        if count % 1000 == 0:
-            print(count)
+        if count % 20000 == 0:
+            print("parsed %d sentences " % count)
         if len(str(sentence)) > 500:
             continue
 
@@ -59,7 +59,7 @@ def get_couples_from_patterns(path_to_corpus: str, list_of_patterns: List[str], 
         if count > limit:
             break
 
-    print("count = ", count)
+    print("Parsed %d sentences " % count)
     df = pd.DataFrame(extracted_couples, columns=['hypo', 'hyper'], index=None)
     df['stats'] = df.groupby(['hypo', 'hyper'])['hypo'].transform('size')
     print(df)
@@ -149,6 +149,7 @@ def load_all_nps(path_to_NPs) -> List[str]:
 def filter_nps(np_list: List, min_count, keep_count=False, isSave=False, path=None) -> DataFrame:
     """
     get NPs that appear above n times in the corpus, and not in stop words
+    :param keep_count:
     :param np_list:
     :param min_count: min appearance times
     :param isSave:
@@ -162,11 +163,10 @@ def filter_nps(np_list: List, min_count, keep_count=False, isSave=False, path=No
 
     dt_count = pd.value_counts(np_list).rename_axis('NP').reset_index(name='count')
     dt_count = dt_count[dt_count['count'] >= min_count]
+    dt_count.drop_duplicates(inplace=True)
+    # dt_count['NP'] = dt_count['NP'].map(lambda x: x if x not in stop_words else None)
+    dt_count.dropna(inplace=True)
 
-    dt_count['NP'] = dt_count['NP'].map(lambda x: x if x not in stop_words else None)
-
-    print(dt_count)
-    raise
     if not keep_count:
         dt_count.drop(columns=['count'], axis=1, inplace=True)
     if isSave:
@@ -198,8 +198,6 @@ def get_filtered_hhcouples(dt_couples: DataFrame, dt_NPs: DataFrame, isSave=Fals
     merge = pd.merge(dt_couples, dt_NPs, left_on='hypo', right_on='NP')
     if isSave:
         merge.loc[:, ['hypo', 'hyper', 'stats']].to_csv(path, encoding='utf-8')
-    print(merge)
-
     return merge.loc[:, ['hypo', 'hyper', 'stats']]
 
 if __name__ == "__main__":
