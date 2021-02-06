@@ -88,3 +88,8 @@ def return_res(line, return_line, keep__=True, keep_stop=True):
 
     else:
         return " ".join(list) if return_line else list
+
+
+if __name__ == "__main__":
+    for word in stop:
+        print(word)

@@ -164,7 +164,7 @@ def filter_nps(np_list: List, min_count, keep_count=False, isSave=False, path=No
     dt_count = pd.value_counts(np_list).rename_axis('NP').reset_index(name='count')
     dt_count = dt_count[dt_count['count'] >= min_count]
     dt_count.drop_duplicates(inplace=True)
-    # dt_count['NP'] = dt_count['NP'].map(lambda x: x if x not in stop_words else None)
+    dt_count['NP'] = dt_count['NP'].map(lambda x: x if x not in stop_words else None)
     dt_count.dropna(inplace=True)
 
     if not keep_count:

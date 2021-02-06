@@ -107,13 +107,24 @@ def check_dir(path):
             print("create dir failed", str(e))
 
 
+def add_capital_s(list) -> List:
+    result = []
+    for element in list:
+        result.append(element)
+        result.append(element+'s')
+        result.append(str(element+'s').title())
+        result.append((str(element).title()))
+    return result
+
 if __name__ == "__main__":
     pd.set_option('display.max_columns', None)
+    pd.set_option('display.max_rows', 500)
 
     # core_concepts = ["music"]
-    core_concepts = ['album',  'arrangement', 'instrument', 'composition', 'genre', 'instrumentation', 'artist',
-                     'event', 'performance']
-    hypernym_set = set(core_concepts)
+    core_concepts = ['instrument', 'composition', 'genre', 'instrumentation', 'event']
+    no_training_concepts = ['singer', 'artist', 'song', 'band', 'group', 'album', 'music', 'yes', 'people', 'musician', 'star', 'fan']
+    hypernym_set = set(add_capital_s(core_concepts))
+    no_training_set = add_capital_s(no_training_concepts)
     iteration = 1
 
     check_dir(w2v_path)
@@ -162,7 +173,7 @@ if __name__ == "__main__":
     list_of_patterns = pf.get_reliable_patterns(pf.parse_pattern_file(path_to_spm), SP_TH)
 
     while True:
-        path_to_iter = 'Output/Trial test new filtered predict set/iter_@/'.replace('@', str(iteration))
+        path_to_iter = 'Output/Trial test filter with no training set/iter_@/'.replace('@', str(iteration))
         check_dir(path_to_iter)
         check_dir(np_path)
         logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)  # enable logging
@@ -190,17 +201,20 @@ if __name__ == "__main__":
 
         """     Step 5   Train the model     """
         # Filter couples that hyponym is not in filtered NP set
-        filtered_hhcouples = pf.get_filtered_hhcouples(dt_extracted_hhcouples_count, dt_filtered_nps)
+        filtered_hhcouples = pf.get_filtered_hhcouples(dt_extracted_hhcouples_count, dt_filtered_nps).drop_duplicates()
         positive_couple_set = positive_couple_set.append(filtered_hhcouples)  # Add extracted couples to positive couple set
 
         print(">>>>>>>>>>>>>>>>>>>>>>>>> Build training dataset >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         # TODO How to deal with the high quality (stats) couples ?
         filtered_hhcouples.drop(columns=['stats'], inplace=True)  # Do nothing and Drop for now
-        filtered_hhcouples.drop_duplicates(inplace=True)  # TODO CHECK
+        negative_embeddings = ML.get_embeddings_from_txt(path_to_label_dataset, w2v, filtered_hhcouples)
+
+        filtered_hhcouples = filtered_hhcouples.applymap(lambda x: None if x in no_training_set or str(x).istitle() else x)
+        filtered_hhcouples.dropna(inplace=True)  # Remove capital concepts and those that are in no train set to avoid bias the classifier
         hhcouple_embeddings = ML.return_features_from_word(filtered_hhcouples, w2v)
+
         print("positive set size: %d " % hhcouple_embeddings.shape[0])
         # hhcouple_embeddings = ML.boost_embeddings(hhcouple_embeddings, 2)
-        negative_embeddings = ML.get_embeddings_from_txt(path_to_label_dataset, w2v, filtered_hhcouples)
         print("negative set size: %d " % negative_embeddings.shape[0])
 
         train_dataset = ML.merge_dataset(hhcouple_embeddings, negative_embeddings)
@@ -215,7 +229,8 @@ if __name__ == "__main__":
         # print(kept_nps)
         # print(">>>>>>>>>>>>>>>>>>>> building predict set >>>>>>>>>>>>>>>>>>>>>>>>>")
         filtered_predict_set = pd.merge(predict_set, pd.DataFrame(hypernym_set, columns=['hyper']),
-                                        left_on='NP_b', right_on='hyper', how='right').drop(columns='hyper')
+                                        left_on='NP_b', right_on='hyper', how='inner').drop(columns='hyper')
+
         """     Step 7   Predict """
         print(">>>>>>>>>>>>>>>>>>>> Predict >>>>>>>>>>>>>>>>>>>>>>>>>")
         result = ML.get_predict_result(filtered_predict_set, clf, True, path_to_predict_result)
@@ -226,8 +241,6 @@ if __name__ == "__main__":
 
         positive_couple_set = positive_couple_set.append(predicted_hhcouples)
         positive_couple_set.to_csv(path_to_positive_couples)
-        print('predicted hh couples above threshold:')
-        print(predicted_hhcouples)
 
         """     Step 9  Start next iteration"""
         predicted_hypos = set(predicted_hhcouples['hypo'])
