@@ -7,7 +7,7 @@ import gensim
 import logging
 from gensim.models import word2vec, Word2Vec
 
-from Helpers.Generator import TokenGenerator, BasicGenerator
+from Helpers.Generator import TokenGenerator, BasicGenerator, LemmaGenerator
 
 
 def train_word2vec_model(sentence_path: str, path_to_model:str, num_workers: int, num_features: int,
@@ -24,10 +24,11 @@ def train_word2vec_model(sentence_path: str, path_to_model:str, num_workers: int
 
     print("Training model...")
     start_time = datetime.now()
-    model = word2vec.Word2Vec(TokenGenerator(path=sentence_path, keep_stop=True, keep__=True),
-                              workers=num_workers, size=num_features, min_count=min_word_count,
+    # model = word2vec.Word2Vec(TokenGenerator(path=sentence_path, keep_stop=True, keep__=True),
+    #                           workers=num_workers, size=num_features, min_count=min_word_count,
+    #                           window=context_size, sample=downsampling)
+    model = word2vec.Word2Vec(LemmaGenerator(path=sentence_path),workers=num_workers, size=num_features, min_count=min_word_count,
                               window=context_size, sample=downsampling)
-
     # forget the original vectors and only keep the normalized ones = saves lots of memory!
     model.wv.init_sims(replace=True)
     end_time = datetime.now()

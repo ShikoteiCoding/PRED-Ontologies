@@ -58,9 +58,9 @@ def boost_embeddings(data: DataFrame, n: int) -> DataFrame:
     #     return dt_embeddings
 
 
-def get_embeddings_from_txt(path: str, w2v, hhcouples: DataFrame) -> DataFrame:
+def get_negative_embeddings(path: str, w2v, hhcouples: DataFrame) -> DataFrame:
     """
-    Get the word embeddings from a labeled text
+    Get negative dataset, which have hyponym or hypernym of HHcouples  in the labeled NHH couples
     :param path: path of the labeled dataset
     :return: list of non hypernymy couple
     """
@@ -135,6 +135,14 @@ def classification_report_with_f1_score(y_true, y_pred):
 
 
 def get_predict_result(nps: DataFrame, clf, isSaved=False, path_predict=None) -> DataFrame:
+    """
+    Predict with trained classifier and return a DataFrame of the predict couples and its probability being an HHcouple
+    :param nps: predict set
+    :param clf:
+    :param isSaved:
+    :param path_predict:
+    :return: DataFrame, columns = NP_a, NP_b, y_prob_1
+    """
     predict = clf.predict_proba(self_concat(nps))
     nps['y_prob_1'] = predict[:, 1].round(2)
     nps.sort_values('y_prob_1', inplace=True, ascending=False)
@@ -146,6 +154,8 @@ def get_predict_result(nps: DataFrame, clf, isSaved=False, path_predict=None) ->
 
 def save_predict_set(nps: DataFrame, model, path):
     """ Save the NP pair embeddings in csv, to be run only once to build the massive matrix """
+    print('>'*12, 'Saving predict set ', '>'*12)
+
     count = 0
     step = 100
 
@@ -194,8 +204,9 @@ def converter(instr):
     return np.fromstring(instr[1:-1], sep=' ')
 
 
-def load_predict_embedding_pairs(path_to_predict_pair, limit=None) -> DataFrame:
+def load_predict_set(path_to_predict_pair, limit=None) -> DataFrame:
     # TODO: read in chunk if it's too big
+    print('>'*12, 'Loading predict set ', '>'*12)
 
     pairs = pd.concat([pd.read_pickle(path_to_predict_pair + x) for x in os.listdir(path_to_predict_pair)])
     return pairs

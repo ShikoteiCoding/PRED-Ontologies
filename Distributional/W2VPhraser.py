@@ -7,13 +7,13 @@ import pandas as pd
 from datetime import datetime
 
 from gensim.models.phrases import Phrases, Phraser, pseudocorpus, original_scorer
-from Helpers.Generator import stop
+from Helpers.Generator import stop, LemmaGenerator
 from Helpers.Generator import TokenGenerator
 
 
 # -------------------- Phraser -------------------------------------
 def build_phrases_model(sentences, min_count, threshold, progress_per) -> Phraser:
-    phrases = Phrases(sentences, min_count=min_count, threshold=threshold, progress_per=progress_per, scoring='npmi')
+    phrases = Phrases(sentences, min_count=min_count, threshold=threshold, progress_per=progress_per)
     return Phraser(phrases)
 
 
@@ -117,7 +117,7 @@ def work_phraser(phraser_path, path_to_input, max_gram, min_counts, thresholds) 
 
         # ------------- First step: detect phrases -------------------
         phraser = build_phrases_model(
-            TokenGenerator(path_to_input, keep__=keep__, keep_stop=False),
+            LemmaGenerator(path_to_input, keep__=keep__, keep_stop=False),
             min_count=min_counts[i - 2],
             threshold=thresholds[i - 2],
             progress_per=1000)

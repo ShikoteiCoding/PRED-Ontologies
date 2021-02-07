@@ -5,6 +5,8 @@ from typing import List, Generator
 import gc
 from typing import List, Tuple, Set
 import heapq
+
+import spacy
 from gensim.models import Word2Vec
 from pandas import DataFrame
 
@@ -16,7 +18,7 @@ from Helpers.HyperHypoCouple import HHCouple, NHHCouple
 import pandas as pd
 
 
-def get_couples_from_patterns(path_to_corpus: str, list_of_patterns: List[str], hypernym_set: List[str], limit: int,
+def get_couples_from_patterns(path_to_corpus: str, list_of_patterns: List[str], hypernym_set: Set, limit: int,
                               isSaved=False, path_to_hhcouples=None) \
         -> DataFrame:
     """
@@ -39,7 +41,7 @@ def get_couples_from_patterns(path_to_corpus: str, list_of_patterns: List[str], 
 
     for sentence in sentences:
         if count % 20000 == 0:
-            print("parsed %d sentences " % count)
+            print("Extracted %d couples from %d sentences " % (len(extracted_couples), count))
         if len(str(sentence)) > 500:
             continue
 
@@ -62,7 +64,6 @@ def get_couples_from_patterns(path_to_corpus: str, list_of_patterns: List[str], 
     print("Parsed %d sentences " % count)
     df = pd.DataFrame(extracted_couples, columns=['hypo', 'hyper'], index=None)
     df['stats'] = df.groupby(['hypo', 'hyper'])['hypo'].transform('size')
-    print(df)
     if isSaved:
         df.to_csv(path_to_hhcouples, encoding='utf-8', index=False)
     return df
@@ -99,6 +100,22 @@ def get_reliable_patterns(patterns: List[Tuple[str, float]], SP_TH) -> List[str]
     return list_of_patterns
 
 
+def extract_NPs_lemma(list_of_all_nps: List[str]) ->List[str]:
+    """
+    Use spacy to get lemmas for a NP (word or phrase)
+    :param list_of_all_nps: extracted NPs by java parser
+    :return: list of NPs lemmatised by spacy
+    """
+    lemmas = []
+    nlp = spacy.load("en_core_web_sm")
+    for np in list_of_all_nps:
+        np = nlp(np)
+        for word in np.noun_chunks:
+            lemmas.append(word.lemma_)
+
+    return lemmas
+
+
 def extract_NPs(path_to_corpus: str, max_length: int, isSave=False, path_to_NPs=None) ->List[str]:
     """
     Extract NPs from corpus, filter with max length, character and stop words
@@ -108,6 +125,8 @@ def extract_NPs(path_to_corpus: str, max_length: int, isSave=False, path_to_NPs=
     :param path_to_NPs:
     :return:
     """
+    print('>'*12, 'extract NPs ', '>'*12)
+
     NPs = []
     progress = 0
     # Loop over the sentences
@@ -117,7 +136,7 @@ def extract_NPs(path_to_corpus: str, max_length: int, isSave=False, path_to_NPs=
         g = cf.get_sentences(path_to_corpus)
     for sentence in g:
         if progress % 5000 == 0:
-            print("parsing %d sentences ..." % progress)
+            print("Extracted %d NPs from %d sentences ..." % (len(NPs), progress))
         if len(str(sentence)) > 500:
             continue
         # Filter NPs
@@ -162,8 +181,7 @@ def filter_nps(np_list: List, min_count, keep_count=False, isSave=False, path=No
         stop_words.add(stop.capitalize())
 
     dt_count = pd.value_counts(np_list).rename_axis('NP').reset_index(name='count')
-    dt_count = dt_count[dt_count['count'] >= min_count]
-    dt_count.drop_duplicates(inplace=True)
+    dt_count = dt_count[dt_count['count'] >= min_count].drop_duplicates()
     dt_count['NP'] = dt_count['NP'].map(lambda x: x if x not in stop_words else None)
     dt_count.dropna(inplace=True)
 
