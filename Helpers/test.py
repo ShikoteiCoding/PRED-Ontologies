@@ -1,6 +1,8 @@
 import io
 import re
+from datetime import datetime
 
+import pandas as pd
 import spacy
 from nltk.corpus import stopwords
 sw = stopwords.words("english")
@@ -39,11 +41,26 @@ stop.add("biggest")
 stop.add("good")
 
 if __name__ == "__main__":
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.max_rows', None)
     nlp = spacy.load("en_core_web_sm")
+    f = open('../Dataset/sentences/sentence_lemmatized.txt', 'a', encoding='utf-8')
+    for i in range(0, 10):
+        print(datetime.now(), i)
+        for line in open('../Dataset/sentences/sliced_files/sentence_0%d.txt' % i, 'r', encoding='utf-8'):
+            line = re.sub("[^Ü-üa-zA-Z_]", " ", line)
+            line = re.sub("[.]", " ", line)
+
+            doc = nlp(line)
+
+            sentence = (" ".join([token.lemma_ for token in doc if token.lemma_ not in ['s', 't']]))
+            f.write(sentence + '\n')
+    f.close()
+
     # for line in open('../Output/NPs/All NPs mincount = 99.txt', 'r', encoding='utf-8'):
-    #     words = nlp(line)
-    #     for w in words.noun_chunks:
-    #         print(w.lemma_)
+    # words = nlp('previous American Jazz')
+    # for w in words.noun_chunks:
+    #     print(w.lemma_)
     # sentence = "produced two hit singles including the Top 20 title track and , like I , Assassin , spent six weeks in the charts ."
     # # sentence ="According to Numan , this was an unintentional result of acne ; before an appearance on Top of the Pops , he had `` spots everywhere , so they slapped about half an inch of white makeup on me before I 'd even walked in the door ."
     # words = nlp(sentence)
@@ -63,30 +80,30 @@ if __name__ == "__main__":
     #     # sentence = sentence.replace(x.text, x.lemma_)
     # print(sentence)
 
-    for sentence in open('../Dataset/sentences/sliced_files/sentence_00.txt', 'r', encoding='utf-8'):
-        sentence = re.sub("[^Ü-üa-zA-Z_]", " ", sentence)
-        print(sentence.replace('\n', ''))
-
-        doc = nlp(sentence)
-
-        for x in doc:
-            sentence = re.sub(r"\b%s\b" % x.text, x.lemma_, sentence)
-        sentence = re.sub("[^Ü-üa-zA-Z_]", " ", sentence)
-        sentence = re.sub(r"\bs\b", '', sentence)
-
-        for chunk in doc.noun_chunks:
-            words = chunk.text.split()
-            if len(words)>4:
-                continue
-            if len(words)>1:
-                chunk = ' '.join([w for w in words if w not in stop])
-                res = '_'.join([w for w in words if w not in stop])
-                sentence = sentence.replace(chunk,res)
-
-        print(sentence.split(), '\n')
-    # for token in doc:
-    #     print(token.text, token.lemma_, token.pos_, token.tag_, token.dep_,
-    #           token.shape_, token.is_alpha, token.is_stop)
+    # for sentence in open('../Dataset/sentences/sliced_files/sentence_00.txt', 'r', encoding='utf-8'):
+    #     sentence = re.sub("[^Ü-üa-zA-Z_]", " ", sentence)
+    #     print(sentence.replace('\n', ''))
+    #
+    #     doc = nlp(sentence)
+    #
+    #     for x in doc:
+    #         sentence = re.sub(r"\b%s\b" % x.text, x.lemma_, sentence)
+    #     sentence = re.sub("[^Ü-üa-zA-Z_]", " ", sentence)
+    #     sentence = re.sub(r"\bs\b", '', sentence)
+    #
+    #     for chunk in doc.noun_chunks:
+    #         words = chunk.text.split()
+    #         if len(words)>4:
+    #             continue
+    #         if len(words)>1:
+    #             chunk = ' '.join([w for w in words if w not in stop])
+    #             res = '_'.join([w for w in words if w not in stop])
+    #             sentence = sentence.replace(chunk,res)
+    #
+    #     print(sentence.split(), '\n')
+    # # for token in doc:
+    # #     print(token.text, token.lemma_, token.pos_, token.tag_, token.dep_,
+    # #           token.shape_, token.is_alpha, token.is_stop)
 
     # word = nlp('Music\nArt rock')
 # According to Numan , this was an unintentional result of acne ; before an appearance on Top of the Pops , he had `` spots everywhere , so they slapped about half an inch of white makeup on me before I 'd even walked in the door .

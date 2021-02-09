@@ -33,6 +33,142 @@ stopWords.add("better")
 stopWords.add("biggest")
 stopWords.add("good")
 
+def get_sentences_from_dir_NPlemma(path: str) -> Generator[ParsedSentence, None, None]:
+    """
+    Returns all the (content) sentences in a processed corpus file
+    :param path: dir path
+    :return: the next sentence (a generator function)
+    """
+    sent = ps.ParsedSentence()
+    isNP = False
+    is_root = False
+    root = ""
+    ri = 0
+    np = ""
+    np_indexes = []
+    for line in BasicGenerator(path):
+        # try:
+        #     line = str(line, "utf-8")
+        # except:
+        #     continue
+        # Ignore start and end of doc
+        if '</s>' in line and sent.id == -1:
+            continue
+        if '<text' in line or '</text' in line:
+            continue
+        if '<s id' in line:
+            sent.id = line.split("'")[1]
+            continue
+        # End of sentence
+        elif '</s>' in line:
+            yield sent
+            isNP = False
+            is_root = False
+            root = ""
+            ri = 0
+            np = ""
+            np_indexes = []
+            sent = ps.ParsedSentence()
+        elif '<NP>' in line:
+            isNP = True
+        elif '</NP>' in line:
+            isNP = False
+            if len(np_indexes) > 0:
+                sent.add_NP(np.strip(), root, ri, min(np_indexes), max(np_indexes))
+            np = ""
+            np_indexes = []
+        elif '<root>' in line:
+            is_root = True
+        elif '</root>' in line:
+            is_root = False
+        else:
+            try:
+
+                word, lemma, pos, index, parent, parent_index, dep, type = line.split("\t")
+                if is_root:
+                    root = word
+                    ri = int(index)
+                if isNP:
+                    np_indexes.append(int(index))
+                    np = np + " " + lemma
+                sent.add_word(word, lemma, pos, int(index), parent, int(parent_index), dep, type.strip())
+                # One of the items is a space - ignore this token
+            except Exception as e:
+                print(str(e))
+                continue
+def get_sentences_NPlemma(corpus_file: str) -> Generator[ParsedSentence, None, None]:
+    """
+    Returns all the (content) sentences in a processed corpus file
+    :param corpus_file: the processed corpus file (may be compressed or not)
+    :return: the next sentence (a generator function)
+    """
+    sent = ps.ParsedSentence()
+    # Read all the sentences in the file
+    if str(corpus_file).endswith(".gz"):
+        f_in = gzip.open(corpus_file, 'r')
+    elif str(corpus_file).endswith(".txt"):
+        f_in = open(corpus_file, 'r', errors="ignore")
+    else:
+        print("wrong input file.")
+    # with gzip.open(corpus_file, 'r') as f_in:
+    isNP = False
+    is_root = False
+    root = ""
+    ri = 0
+    np = ""
+    np_indexes = []
+    with open(corpus_file, 'r', errors="ignore") as f_in:
+        for line in f_in:
+            # try:
+            #     line = str(line, "utf-8")
+            # except:
+            #     continue
+            # Ignore start and end of doc
+            if '</s>' in line and sent.id == -1:
+                continue
+            if '<text' in line or '</text' in line:
+                continue
+            if '<s id' in line:
+                sent.id = line.split("'")[1]
+                continue
+            # End of sentence
+            elif '</s>' in line:
+                yield sent
+                isNP = False
+                is_root = False
+                root = ""
+                ri = 0
+                np = ""
+                np_indexes = []
+                sent = ps.ParsedSentence()
+            elif '<NP>' in line:
+                isNP = True
+            elif '</NP>' in line:
+                isNP = False
+                if len(np_indexes) > 0:
+                    sent.add_NP(np.strip(), root, ri, min(np_indexes), max(np_indexes))
+                np = ""
+                np_indexes = []
+            elif '<root>' in line:
+                is_root = True
+            elif '</root>' in line:
+                is_root = False
+            else:
+                try:
+
+                    word, lemma, pos, index, parent, parent_index, dep, type = line.split("\t")
+                    if is_root:
+                        root = word
+                        ri = int(index)
+                    if isNP:
+                        np_indexes.append(int(index))
+                        np = np + " " + lemma
+                    sent.add_word(word, lemma, pos, int(index), parent, int(parent_index), dep, type.strip())
+                    # One of the items is a space - ignore this token
+                except Exception as e:
+                    print(str(e))
+                    continue
+
 
 def get_sentences(corpus_file: str) -> Generator[ParsedSentence, None, None]:
     """

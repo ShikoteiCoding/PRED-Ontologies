@@ -7,13 +7,13 @@ import pandas as pd
 from datetime import datetime
 
 from gensim.models.phrases import Phrases, Phraser, pseudocorpus, original_scorer
-from Helpers.Generator import stop, LemmaGenerator
+from Helpers.Generator import stop, LemmaGenerator, BasicTokenGenerator
 from Helpers.Generator import TokenGenerator
 
 
 # -------------------- Phraser -------------------------------------
 def build_phrases_model(sentences, min_count, threshold, progress_per) -> Phraser:
-    phrases = Phrases(sentences, min_count=min_count, threshold=threshold, progress_per=progress_per)
+    phrases = Phrases(sentences, min_count=min_count, threshold=threshold, progress_per=progress_per, scoring="npmi")
     return Phraser(phrases)
 
 
@@ -41,7 +41,7 @@ def apply_phraser_to_corpus(phraser: Phraser, input_file_path, output_file_path)
     """
     count = 0
     with open(output_file_path, 'w', encoding='utf-8') as out_file:
-        for tokens in TokenGenerator(input_file_path, keep__=True):
+        for tokens in BasicTokenGenerator(input_file_path, keep__=True):
             parsed_sentence = ' '.join(phraser[tokens])
             out_file.write(parsed_sentence + '\n')
             count += 1
@@ -96,7 +96,7 @@ def get_model_name(num_of_gram, min_count, threshold):
     return "%d-grams-min%d-threshold%d-file00" % (num_of_gram, min_count, threshold)
 
 
-def work_phraser(phraser_path, path_to_input, max_gram, min_counts, thresholds) -> Phraser:
+def work_phraser(phraser_path, path_to_input, max_gram, min_counts, thresholds) -> str:
     """
     Train a phraser with given corpus and parameters
     'The Emmy Award' -> 'The_Emmy_Award'
@@ -105,7 +105,7 @@ def work_phraser(phraser_path, path_to_input, max_gram, min_counts, thresholds) 
     :param max_gram: Maximum gram allowed. 'The Emmy Award' = 3
     :param min_counts: minimum appearance of a word
     :param thresholds:
-    :return: trained phraser
+    :return: phrased sentence file path
     """
     keep__ = False  # whether to keep the '_' in result; Important because detected phrases are connected with _
     # we don't keep those that are in the original file
@@ -117,14 +117,14 @@ def work_phraser(phraser_path, path_to_input, max_gram, min_counts, thresholds) 
 
         # ------------- First step: detect phrases -------------------
         phraser = build_phrases_model(
-            LemmaGenerator(path_to_input, keep__=keep__, keep_stop=False),
+            BasicTokenGenerator(path_to_input, keep__=keep__),
             min_count=min_counts[i - 2],
             threshold=thresholds[i - 2],
             progress_per=1000)
         end = datetime.now()
 
         # ------------ Second step: save model and results for analyse --------------------
-        model_name = "%d-grams-min%d-threshold%d"  % \
+        model_name = "%d-grams-min%d-threshold%f"  % \
                      (i, min_counts[i - 2], thresholds[i - 2])
         phraser.save(phraser_path + model_name)
 
@@ -137,7 +137,7 @@ def work_phraser(phraser_path, path_to_input, max_gram, min_counts, thresholds) 
         path_to_input = path_to_output
         keep__ = True
 
-    return phraser
+    return path_to_output
 
 
 if __name__ == "__main__":

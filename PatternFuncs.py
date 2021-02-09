@@ -100,18 +100,23 @@ def get_reliable_patterns(patterns: List[Tuple[str, float]], SP_TH) -> List[str]
     return list_of_patterns
 
 
-def extract_NPs_lemma(list_of_all_nps: List[str]) ->List[str]:
+def extract_NPs_lemma(list_of_all_nps: DataFrame) ->List[str]:
     """
     Use spacy to get lemmas for a NP (word or phrase)
     :param list_of_all_nps: extracted NPs by java parser
     :return: list of NPs lemmatised by spacy
     """
     lemmas = []
+    count = 0
     nlp = spacy.load("en_core_web_sm")
-    for np in list_of_all_nps:
+    for np in list_of_all_nps['NP']:
+        count += 1
+        if  count % 100 ==0:
+            print(count)
         np = nlp(np)
         for word in np.noun_chunks:
             lemmas.append(word.lemma_)
+            print(word.lemma_)
 
     return lemmas
 
@@ -131,9 +136,9 @@ def extract_NPs(path_to_corpus: str, max_length: int, isSave=False, path_to_NPs=
     progress = 0
     # Loop over the sentences
     if os.path.isdir(path_to_corpus):
-        g = cf.get_sentences_from_dir(path_to_corpus)
+        g = cf.get_sentences_from_dir_NPlemma(path_to_corpus)
     else:
-        g = cf.get_sentences(path_to_corpus)
+        g = cf.get_sentences_NPlemma(path_to_corpus)
     for sentence in g:
         if progress % 5000 == 0:
             print("Extracted %d NPs from %d sentences ..." % (len(NPs), progress))
@@ -141,16 +146,13 @@ def extract_NPs(path_to_corpus: str, max_length: int, isSave=False, path_to_NPs=
             continue
         # Filter NPs
         for np in sentence.NPs:
-            if len(np.text.split()) > max_length:
-                continue
-            if np.text in Helpers.Generator.stop:
-                continue
-            if re.search(r'[^a-zA-Z-\s]', np.text):  # accept only letters and - and ' in NP
-                continue
-            if np.text in Helpers.Generator.stop:
+            nps = cf.remove_first_occurrences_stopwords(np.text)
+            if len(nps.split()) > max_length:
                 continue
 
-            NPs.append(cf.remove_first_occurrences_stopwords(np.text))
+            if re.search(r'[^a-zA-Z-\s]', nps):  # accept only letters and - and ' in NP
+                continue
+            NPs.append(nps)
         progress += 1
     if isSave:
         with open(path_to_NPs, 'w', encoding='utf-8', errors='ignore') as f:

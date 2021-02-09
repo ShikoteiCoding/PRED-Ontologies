@@ -44,6 +44,25 @@ class BasicGenerator(object):
                 yield line
 
 
+class BasicTokenGenerator(object):
+    def __init__(self, path, keep__):
+        self.path = path
+        self.keep__ = keep__
+
+    def __iter__(self):
+        if os.path.isdir(self.path):
+            for file in os.listdir(self.path):
+                for line in open(self.path + file, encoding='utf-8', errors='ignore'):
+                    if not self.keep__:
+                        line = re.sub("[_]", " ", line)
+                    yield line.split()
+        else:
+            for line in open(self.path, encoding='utf-8', errors="ignore"):
+                if not self.keep__:
+                    line = re.sub("[_]", " ", line)
+                yield line.split()
+
+
 class LineGenerator(object):  # A generator that returns lines of all files in the given path
     def __init__(self, dir_name, keep__=True, keep_stop=True):
         self.path = dir_name
@@ -91,32 +110,33 @@ class LemmaGenerator(object):  # A generator that returns list of words of all f
         if os.path.isdir(self.path):
             for file in os.listdir(self.path):
                 for line in open(self.path + file, encoding='utf-8', errors="ignore"):
-                    yield return_lemmatized_phrased_tokens(self, line)
+                    yield return_lemmatized_tokens(self, line)
 
         else:
             for line in open(self.path, encoding='utf-8', errors="ignore"):
-                yield return_lemmatized_phrased_tokens(self, line)
+                yield return_lemmatized_tokens(self, line)
 
 
-def return_lemmatized_phrased_tokens(self, sentence):
-    sentence = re.sub("[^Ü-üa-zA-Z_]", " ", sentence)
+def return_lemmatized_tokens(self, sentence):
+    line = re.sub("[^Ü-üa-zA-Z_0-9]", " ", sentence)
+    line = re.sub("[.]", " ", line)
 
-    doc = self.nlp(sentence)
+    doc = self.nlp(line)
+    return [token.lemma_ for token in doc if token.lemma_ not in ['s', 't']]
 
-    for x in doc:
-        sentence = re.sub(r"\b%s\b" % x.text, x.lemma_, sentence)
-    sentence = re.sub("[^Ü-üa-zA-Z_]", " ", sentence)
-    sentence = re.sub(r"\bs\b", '', sentence)
-
-    for chunk in doc.noun_chunks:
-        words = chunk.text.split()
-        if len(words) > 4:
-            continue
-        if len(words) > 1:
-            chunk = ' '.join([w for w in words if w not in stop])
-            res = '_'.join([w for w in words if w not in stop])
-            sentence = sentence.replace(chunk, res)
-    return sentence.split()
+def remove_first_occurrences_stopwords(text: str) -> str:
+    """
+    :param text: text string
+    :return: the text after removing the first occurrences of stop words in the text
+    """
+    if text == "":
+        return text
+    words = text.split()
+    if words[0] in stop:
+        text = str("s" + text + " ").replace("s" + words[0] + " ", "").strip()
+        return remove_first_occurrences_stopwords(text)
+    else:
+        return text
 
 
 def return_res(line, return_line, keep__=True, keep_stop=True):
@@ -135,5 +155,5 @@ def return_res(line, return_line, keep__=True, keep_stop=True):
 
 
 if __name__ == "__main__":
-    for word in stop:
-        print(word)
+    for sentence in LemmaGenerator('../Dataset/sentences/sliced_files/sentence_00.txt'):
+        print(' '.join(sentence))
