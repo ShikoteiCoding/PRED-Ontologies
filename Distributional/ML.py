@@ -8,7 +8,7 @@ import json
 from gensim.models import Word2Vec
 from pandas import DataFrame
 from typing import List, Tuple, Dict, Set
-
+from sklearn import preprocessing
 from sklearn import svm
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.metrics import classification_report, accuracy_score, f1_score, make_scorer, recall_score, precision_score
@@ -111,8 +111,11 @@ def self_concat(dataset: DataFrame):
     combine = pd.DataFrame(np.column_stack(list(zip(*dataset['vec_a'])) + list(zip(*dataset['vec_b'])))).reset_index(drop=True)
     lastcol = (dataset['vec_a']-dataset['vec_b'])\
         .apply(lambda x: np.linalg.norm(x, ord=1)).reset_index(drop=True)
-    result = pd.concat([combine, lastcol], axis=1)
 
+    max_min_scaler = lambda x: (x - np.min(x)) / (np.max(x) - np.min(x))
+    result = pd.concat([combine, lastcol], axis=1)
+    result.columns = [i for i in range(0, 201)]
+    result[[200]] = result[[200]].apply(max_min_scaler)
     return result
 
 

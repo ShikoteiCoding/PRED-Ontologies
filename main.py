@@ -21,8 +21,8 @@ MAX_NP_LENGTH = 4
 
 """ phraser parameters """
 max_gram = 4
-min_counts = [20,20,20]
-thresholds = [0.2,0.2,0.2]
+min_counts = [20, 20, 20]
+thresholds = [0.2, 0.2, 0.2]
 
 """ word2vec parameters """
 num_features = 100
@@ -113,29 +113,32 @@ def add_capital_s(list) -> List:
     result = []
     for element in list:
         result.append(element)
-        result.append(element+'s')
-        result.append(str(element+'s').title())
+        result.append(element + 's')
+        result.append(str(element + 's').title())
         result.append((str(element).title()))
     return result
+
 
 def return_dict(list) -> Dict:
     dict = {}
     for word in list:
         dict[word] = word
-        dict[word+'s'] = word
-        dict[str(word+'s').title()] = word
+        dict[word + 's'] = word
+        dict[str(word + 's').title()] = word
         dict[str(word).title()] = word
     return dict
+
 
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s',
                         level=logging.INFO)
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.max_rows', 500)
+    # pd.set_option('display.max_columns', None)
+    # pd.set_option('display.max_rows', 500)
 
     # core_concepts = ["music"]
     core_concepts = ['instrument', 'composition', 'genre', 'instrumentation', 'event']
-    no_training_concepts = ['singer', 'artist', 'song', 'band', 'group', 'album', 'music', 'yes', 'people', 'musician', 'star', 'fan']
+    no_training_concepts = ['singer', 'artist', 'song', 'band', 'group', 'album', 'music', 'yes', 'people', 'musician',
+                            'star', 'fan']
     hypernym_set = set(core_concepts)
     no_training_set = add_capital_s(no_training_concepts)
     iteration = 1
@@ -174,37 +177,33 @@ if __name__ == "__main__":
     # print(pd.DataFrame(w2vf.get_topn_similar(w2v, "electric_guitar", 20)))
     # print(pd.DataFrame(w2vf.get_topn_similar(w2v, "jazz", 20)))
 
-
-
-
     """     Step 0-3: Get real NPs by filtering and crossing """
-    list_of_all_nps = pf.extract_NPs(processed_file_path, MAX_NP_LENGTH, True, path_to_np)
-    # list_of_all_nps = pf.load_all_nps(path_to_np)  # All the NP words extracted by the parser
-    dt_filtered_nps = pf.filter_nps(list_of_all_nps, MIN_NP_COUNT, keep_count=True, isSave=True, path=path_to_filtered_NPs)
+    # list_of_all_nps = pf.extract_NPs(processed_file_path, MAX_NP_LENGTH, True, path_to_np)
+    list_of_all_nps = pf.load_all_nps(path_to_np)  # All the NP words extracted by the parser
+    dt_filtered_nps = pf.filter_nps(list_of_all_nps, MIN_NP_COUNT, keep_count=False)
     # print(dt_filtered_nps.head)
-    dt_filtered_nps.drop(columns=['count'], inplace=True)
+    # dt_filtered_nps.drop(columns=['count'], inplace=True)
     # filter NPs with frequency and stop words
-    ML.save_predict_set(dt_filtered_nps, w2v, path_to_predict_set)  # takes time, run once and for all
+    # ML.save_predict_set(dt_filtered_nps, w2v, path_to_predict_set)  # takes time, run once and for all
 
     predict_set = ML.load_predict_set(path_to_predict_set)
-
-
 
     """     Step 3: Extract HHCouples from hypernym_set     """
     list_of_patterns = pf.get_reliable_patterns(pf.parse_pattern_file(path_to_spm), SP_TH)
 
     while True:
-        path_to_iter = 'Output/Experiment Trial-HHcouples not unique/iter_@/'.replace('@', str(iteration))
+        path_to_iter = 'Output/Experiment Trial-NP lemmatized-2/iter_@/'.replace('@', str(iteration))
         check_dir(path_to_iter)
         logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)  # enable logging
         # Paths for each iteration
         path_to_hhcouples = path_to_iter + hhcouple_file_name  # Extracted HHCouples
-        path_to_predict_result = path_to_iter + predict_result_name # Result of predict set
-        path_to_positive_couples = path_to_iter + positive_couples_name     # positive couples extracted(stats = times being extracted) and predicted(stats = probability)
+        path_to_predict_result = path_to_iter + predict_result_name  # Result of predict set
+        path_to_positive_couples = path_to_iter + positive_couples_name  # positive couples extracted(stats = times being extracted) and predicted(stats = probability)
         positive_couple_set = pd.DataFrame(columns=['hypo', 'hyper', 'stats'])
 
         print(">>>>>>>>>>>>>>>>>>>> Extract HHCouples >>>>>>>>>>>>>>>>>>>>>>>")
-        dt_extracted_hhcouples = pf.get_couples_from_patterns(path_to_whole_corpus, list_of_patterns, return_dict(hypernym_set).keys(),
+        dt_extracted_hhcouples = pf.get_couples_from_patterns(path_to_whole_corpus, list_of_patterns,
+                                                              return_dict(hypernym_set).keys(),
                                                               99999999, True, path_to_hhcouples)
 
         """     IGNORE THIS PART FOR IT'S NO LONGER OF USAGE    """
@@ -224,15 +223,18 @@ if __name__ == "__main__":
         filtered_hhcouples = pf.get_filtered_hhcouples(dt_extracted_hhcouples, dt_filtered_nps).drop_duplicates()
         filtered_hhcouples['hyper'] = filtered_hhcouples['hyper'].apply(lambda x: return_dict(hypernym_set)[x])
         print(filtered_hhcouples)
-        positive_couple_set = positive_couple_set.append(filtered_hhcouples)  # Add extracted couples to positive couple set
+        positive_couple_set = positive_couple_set.append(
+            filtered_hhcouples)  # Add extracted couples to positive couple set
 
         print(">>>>>>>>>>>>>>>>>>>>>>>>> Build training dataset >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         # TODO How to deal with the high quality (stats) couples ?
         filtered_hhcouples.drop(columns=['stats'], inplace=True)  # Do nothing and Drop for now
-        negative_embeddings = ML.get_negative_embeddings(path_to_label_dataset, w2v, filtered_hhcouples)  # Build negative dataset
+        negative_embeddings = ML.get_negative_embeddings(path_to_label_dataset, w2v,
+                                                         filtered_hhcouples)  # Build negative dataset
 
         # Remove capital concepts and those that are in no_training set to avoid bias the classifier
-        filtered_hhcouples = filtered_hhcouples.applymap(lambda x: None if x in no_training_set or str(x).istitle() else x)
+        filtered_hhcouples = filtered_hhcouples.applymap(
+            lambda x: None if x in no_training_set or str(x).istitle() else x)
         filtered_hhcouples.dropna(inplace=True)
         hhcouple_embeddings = ML.return_features_from_word(filtered_hhcouples, w2v)
         # hhcouple_embeddings = ML.boost_embeddings(hhcouple_embeddings, 2)
@@ -274,8 +276,11 @@ if __name__ == "__main__":
         print(new_discovered_hypos)
         if len(new_discovered_hypos) > EXIT_TH:
             for hypo in predicted_hhcouples['hypo']:
-                hypernym_set.add(return_dict(hypernym_set)[hypo])
-
+                try:
+                    if hypo not in hypernym_set:
+                        hypernym_set.add(hypo)
+                except:
+                    continue
             iteration += 1
         else:
             break
