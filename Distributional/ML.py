@@ -1,5 +1,7 @@
 import gc
 import math
+import xgboost as xgb
+from xgboost.sklearn import XGBClassifier
 
 import numpy as np
 import pandas as pd
@@ -15,7 +17,7 @@ from sklearn.metrics import classification_report, accuracy_score, f1_score, mak
 from sklearn.model_selection import cross_val_score
 from sklearn.svm import SVC
 
-from Distributional import Word2VecFuncs
+from Distributional import Word2VecFuncs, paramter_tuning
 from Distributional.Word2VecFuncs import get_embedding
 from Helpers import Generator
 from Helpers.HyperHypoCouple import HHCouple, NHHCouple
@@ -126,13 +128,27 @@ def train_model(dataset: DataFrame, show_cross_val=True):
 
     clf = svm.SVC(probability=True)
     if show_cross_val:
-        cross_val_score(clf, X_dataset, y_dataset, cv=5, scoring=make_scorer(classification_report_with_f1_score))
-
+        cvs = cross_val_score(clf, X_dataset, y_dataset, cv=5, scoring=make_scorer(classification_report_with_precision_score))
+        print('averge preceision score = ', cvs.mean())
     clf_res = clf.fit(X_dataset, y_dataset)
     return clf_res
 
+def xgboost(dataset: DataFrame, show_cross_val=True):
+    X_dataset = self_concat(dataset)
+    y_dataset = dataset['label']
+    trial = paramter_tuning.create_study(X_dataset, y_dataset)
+    # xgbc_model = XGBClassifier()
 
-def classification_report_with_f1_score(y_true, y_pred):
+    # xgbc_model.fit(X_dataset,y_dataset)
+    dtrain = xgb.DMatrix(X_dataset, label=y_dataset)
+    bst = xgb.train(trial.params, dtrain)
+    # if show_cross_val:
+    #     cvs = cross_val_score(bst, X_dataset, y_dataset, cv=5, scoring=make_scorer(classification_report_with_precision_score))
+    #     print('averge preceision score = ', cvs.mean())
+    return bst
+
+
+def classification_report_with_precision_score(y_true, y_pred):
     print(classification_report(y_true, y_pred))
     return precision_score(y_true, y_pred)
 
@@ -146,8 +162,10 @@ def get_predict_result(nps: DataFrame, clf, isSaved=False, path_predict=None) ->
     :param path_predict:
     :return: DataFrame, columns = NP_a, NP_b, y_prob_1
     """
-    predict = clf.predict_proba(self_concat(nps))
-    nps['y_prob_1'] = predict[:, 1].round(2)
+    # predict = clf.predict_proba(self_concat(nps))
+    data = self_concat(nps)
+    predict = clf.predict(xgb.DMatrix(self_concat(nps)))
+    nps['y_prob_1'] = predict.round(2)
     nps.sort_values('y_prob_1', inplace=True, ascending=False)
     nps.drop(columns=['vec_a', 'vec_b'], inplace=True)
     if isSaved:

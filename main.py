@@ -192,7 +192,7 @@ if __name__ == "__main__":
     list_of_patterns = pf.get_reliable_patterns(pf.parse_pattern_file(path_to_spm), SP_TH)
 
     while True:
-        path_to_iter = 'Output/Experiment Trial-NP lemmatized-2/iter_@/'.replace('@', str(iteration))
+        path_to_iter = 'Output/Experiment Trial-XGBoost tuned/iter_@/'.replace('@', str(iteration))
         check_dir(path_to_iter)
         logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)  # enable logging
         # Paths for each iteration
@@ -202,10 +202,10 @@ if __name__ == "__main__":
         positive_couple_set = pd.DataFrame(columns=['hypo', 'hyper', 'stats'])
 
         print(">>>>>>>>>>>>>>>>>>>> Extract HHCouples >>>>>>>>>>>>>>>>>>>>>>>")
-        dt_extracted_hhcouples = pf.get_couples_from_patterns(path_to_whole_corpus, list_of_patterns,
-                                                              return_dict(hypernym_set).keys(),
-                                                              99999999, True, path_to_hhcouples)
-
+        # dt_extracted_hhcouples = pf.get_couples_from_patterns(path_to_whole_corpus, list_of_patterns,
+        #                                                       return_dict(hypernym_set).keys(),
+        #                                                       99999999, True, path_to_hhcouples)
+        dt_extracted_hhcouples = pd.read_csv(path_to_hhcouples)
         """     IGNORE THIS PART FOR IT'S NO LONGER OF USAGE    """
         # print("extracted %d hhcouples from corpus" % len(dt_extracted_hhcouples))
         # dt_extracted_hhcouples_count = pf.load_HHCouples_to_dataframe(path_to_hhcouples)
@@ -223,8 +223,7 @@ if __name__ == "__main__":
         filtered_hhcouples = pf.get_filtered_hhcouples(dt_extracted_hhcouples, dt_filtered_nps).drop_duplicates()
         filtered_hhcouples['hyper'] = filtered_hhcouples['hyper'].apply(lambda x: return_dict(hypernym_set)[x])
         print(filtered_hhcouples)
-        positive_couple_set = positive_couple_set.append(
-            filtered_hhcouples)  # Add extracted couples to positive couple set
+        positive_couple_set = positive_couple_set.append(filtered_hhcouples)  # Add extracted couples to positive couple set
 
         print(">>>>>>>>>>>>>>>>>>>>>>>>> Build training dataset >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
         # TODO How to deal with the high quality (stats) couples ?
@@ -245,7 +244,8 @@ if __name__ == "__main__":
         train_dataset = ML.merge_dataset(hhcouple_embeddings, negative_embeddings)
 
         print(">>>>>>>>>>>>>>>>>>>>>>>>> Train classifier >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        clf = ML.train_model(train_dataset, show_cross_val=True)
+        # clf = ML.train_model(train_dataset, show_cross_val=True)  # SVM
+        clf = ML.xgboost(train_dataset, show_cross_val=True)
 
         del hhcouple_embeddings, negative_embeddings, train_dataset
 
