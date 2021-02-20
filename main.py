@@ -132,8 +132,7 @@ def return_dict(list) -> Dict:
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s',
                         level=logging.INFO)
-    # pd.set_option('display.max_columns', None)
-    # pd.set_option('display.max_rows', 500)
+    # pd.set_option('display.max_columns', None)    pd.set_option('display.max_rows', None)
 
     # core_concepts = ["music"]
     core_concepts = ['instrument', 'composition', 'genre', 'instrumentation', 'event']
@@ -192,7 +191,7 @@ if __name__ == "__main__":
     list_of_patterns = pf.get_reliable_patterns(pf.parse_pattern_file(path_to_spm), SP_TH)
 
     while True:
-        path_to_iter = 'Output/Experiment Trial-XGBoost tuned/iter_@/'.replace('@', str(iteration))
+        path_to_iter = 'Output/Experiment Trial-Full NP-All hypos/iter_@/'.replace('@', str(iteration))
         check_dir(path_to_iter)
         logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)  # enable logging
         # Paths for each iteration
@@ -202,10 +201,10 @@ if __name__ == "__main__":
         positive_couple_set = pd.DataFrame(columns=['hypo', 'hyper', 'stats'])
 
         print(">>>>>>>>>>>>>>>>>>>> Extract HHCouples >>>>>>>>>>>>>>>>>>>>>>>")
-        # dt_extracted_hhcouples = pf.get_couples_from_patterns(path_to_whole_corpus, list_of_patterns,
-        #                                                       return_dict(hypernym_set).keys(),
-        #                                                       99999999, True, path_to_hhcouples)
-        dt_extracted_hhcouples = pd.read_csv(path_to_hhcouples)
+        dt_extracted_hhcouples = pf.get_couples_from_patterns(path_to_whole_corpus, list_of_patterns,
+                                                              return_dict(hypernym_set).keys(),
+                                                              99999999, True, path_to_hhcouples)
+        # dt_extracted_hhcouples = pd.read_csv(path_to_hhcouples)
         """     IGNORE THIS PART FOR IT'S NO LONGER OF USAGE    """
         # print("extracted %d hhcouples from corpus" % len(dt_extracted_hhcouples))
         # dt_extracted_hhcouples_count = pf.load_HHCouples_to_dataframe(path_to_hhcouples)
@@ -244,8 +243,8 @@ if __name__ == "__main__":
         train_dataset = ML.merge_dataset(hhcouple_embeddings, negative_embeddings)
 
         print(">>>>>>>>>>>>>>>>>>>>>>>>> Train classifier >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        # clf = ML.train_model(train_dataset, show_cross_val=True)  # SVM
-        clf = ML.xgboost(train_dataset, show_cross_val=True)
+        clf = ML.train_model(train_dataset, show_cross_val=True)  # SVM
+        # clf = ML.xgboost(train_dataset, show_cross_val=True)
 
         del hhcouple_embeddings, negative_embeddings, train_dataset
 
@@ -268,14 +267,14 @@ if __name__ == "__main__":
         positive_couple_set.to_csv(path_to_positive_couples)
 
         """     Step 9  Start next iteration"""
-        predicted_hypos = set(predicted_hhcouples['hypo'])
-        print("predicted unique hypos: ")
-        print(predicted_hypos)
-        new_discovered_hypos = predicted_hypos - (predicted_hypos & hypernym_set)
+        all_hypos = set([x for x in positive_couple_set['hypo'] if not str(x).istitle()])
+        print("All hypos: ")
+        print(all_hypos)
+        new_discovered_hypos = all_hypos - (all_hypos & hypernym_set)
         print("new discovered hypos: ")
         print(new_discovered_hypos)
         if len(new_discovered_hypos) > EXIT_TH:
-            for hypo in predicted_hhcouples['hypo']:
+            for hypo in new_discovered_hypos:
                 try:
                     if hypo not in hypernym_set:
                         hypernym_set.add(hypo)

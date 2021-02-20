@@ -162,12 +162,11 @@ def get_predict_result(nps: DataFrame, clf, isSaved=False, path_predict=None) ->
     :param path_predict:
     :return: DataFrame, columns = NP_a, NP_b, y_prob_1
     """
-    # predict = clf.predict_proba(self_concat(nps))
-    data = self_concat(nps)
-    predict = clf.predict(xgb.DMatrix(self_concat(nps)))
-    nps['y_prob_1'] = predict.round(2)
+    predict = clf.predict_proba(self_concat(nps))
+    nps['y_prob_1'] = predict[:, 1].round(2)
     nps.sort_values('y_prob_1', inplace=True, ascending=False)
     nps.drop(columns=['vec_a', 'vec_b'], inplace=True)
+
     if isSaved:
         nps.to_csv(path_predict)
     return nps
@@ -228,7 +227,9 @@ def converter(instr):
 def load_predict_set(path_to_predict_pair, limit=None) -> DataFrame:
     # TODO: read in chunk if it's too big
     print('>'*12, 'Loading predict set ', '>'*12)
-
+    for x in  os.listdir(path_to_predict_pair):
+        print(x)
+        set = pd.read_pickle(path_to_predict_pair + x)
     pairs = pd.concat([pd.read_pickle(path_to_predict_pair + x) for x in os.listdir(path_to_predict_pair)])
     return pairs
 
