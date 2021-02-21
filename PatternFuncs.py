@@ -5,7 +5,7 @@ from typing import List, Generator
 import gc
 from typing import List, Tuple, Set
 import heapq
-
+from parameters import *
 import spacy
 from gensim.models import Word2Vec
 from pandas import DataFrame
@@ -44,7 +44,6 @@ def get_couples_from_patterns(path_to_corpus: str, list_of_patterns: List[str], 
             print("Extracted %d couples from %d sentences " % (len(extracted_couples), count))
         if len(str(sentence)) > 500:
             continue
-
 
         sequence_representation = sentence.get_sequence_representation()
 
@@ -100,7 +99,7 @@ def get_reliable_patterns(patterns: List[Tuple[str, float]], SP_TH) -> List[str]
     return list_of_patterns
 
 
-def extract_NPs_lemma(list_of_all_nps: DataFrame) ->List[str]:
+def extract_NPs_lemma(list_of_all_nps: DataFrame) -> List[str]:
     """
     Use spacy to get lemmas for a NP (word or phrase)
     :param list_of_all_nps: extracted NPs by java parser
@@ -111,7 +110,7 @@ def extract_NPs_lemma(list_of_all_nps: DataFrame) ->List[str]:
     nlp = spacy.load("en_core_web_sm")
     for np in list_of_all_nps['NP']:
         count += 1
-        if  count % 100 ==0:
+        if count % 100 == 0:
             print(count)
         np = nlp(np)
         for word in np.noun_chunks:
@@ -121,7 +120,7 @@ def extract_NPs_lemma(list_of_all_nps: DataFrame) ->List[str]:
     return lemmas
 
 
-def extract_NPs(path_to_corpus: str, max_length: int, isSave=False, path_to_NPs=None) ->List[str]:
+def extract_NPs(path_to_corpus: str, max_length: int, path_to_NPs) -> List[str]:
     """
     Extract NPs from corpus, filter with max length, character and stop words
     :param path_to_corpus:
@@ -130,7 +129,7 @@ def extract_NPs(path_to_corpus: str, max_length: int, isSave=False, path_to_NPs=
     :param path_to_NPs:
     :return:
     """
-    print('>'*12, 'extract NPs ', '>'*12)
+    print('>' * 12, 'extract NPs ', '<' * 12)
 
     NPs = []
     progress = 0
@@ -154,10 +153,10 @@ def extract_NPs(path_to_corpus: str, max_length: int, isSave=False, path_to_NPs=
                 continue
             NPs.append(nps)
         progress += 1
-    if isSave:
-        with open(path_to_NPs, 'w', encoding='utf-8', errors='ignore') as f:
-            for NP in NPs:
-                f.write(NP+'\n')
+
+    with open(path_to_NPs, 'w', encoding='utf-8', errors='ignore') as f:
+        for NP in NPs:
+            f.write(NP + '\n')
     return NPs
 
 
@@ -167,7 +166,14 @@ def load_all_nps(path_to_NPs) -> List[str]:
     return NPs
 
 
-def filter_nps(np_list: List, min_count, keep_count=False, isSave=False, path=None) -> DataFrame:
+def get_all_nps() -> List[str]:
+    if not os.path.exists(path_to_np):
+        return extract_NPs(processed_file_path, MAX_NP_LENGTH, path_to_np)
+    else:
+        return load_all_nps(path_to_np)
+
+
+def filter_nps(np_list: List, min_count, isSave=False, path=None) -> DataFrame:
     """
     get NPs that appear above n times in the corpus, and not in stop words
     :param keep_count:
@@ -186,14 +192,10 @@ def filter_nps(np_list: List, min_count, keep_count=False, isSave=False, path=No
     dt_count = dt_count[dt_count['count'] >= min_count].drop_duplicates()
     dt_count['NP'] = dt_count['NP'].map(lambda x: x if x not in stop_words else None)
     dt_count.dropna(inplace=True)
-
-    if not keep_count:
-        dt_count.drop(columns=['count'], axis=1, inplace=True)
+    dt_count.drop(columns=['count'], axis=1, inplace=True)
     if isSave:
         dt_count.to_csv(path, encoding='utf-8')
     return dt_count
-
-
 
 
 def load_filtered_nps(path) -> DataFrame:
@@ -210,8 +212,8 @@ def load_HHCouples_to_list(path):
 
 def get_hypos_with_np_count(dt_couples: DataFrame, dt_NPs: DataFrame, isSave=False, path=None) -> List:
     """ For evaluation and result view use"""
-    return pd.merge(dt_couples, dt_NPs, left_on='hypo', right_on='NP').sort_values('count', ascending=False)['hypo'].unique().tolist()
-
+    return pd.merge(dt_couples, dt_NPs, left_on='hypo', right_on='NP').sort_values('count', ascending=False)[
+        'hypo'].unique().tolist()
 
 
 def get_filtered_hhcouples(dt_couples: DataFrame, dt_NPs: DataFrame, isSave=False, path=None) -> DataFrame:
@@ -219,6 +221,7 @@ def get_filtered_hhcouples(dt_couples: DataFrame, dt_NPs: DataFrame, isSave=Fals
     if isSave:
         merge.loc[:, ['hypo', 'hyper', 'stats']].to_csv(path, encoding='utf-8')
     return merge.loc[:, ['hypo', 'hyper', 'stats']]
+
 
 if __name__ == "__main__":
 
@@ -236,6 +239,6 @@ if __name__ == "__main__":
     # print(join)
     # filter_nps('Dataset/NPs/NPs/01_NPs.txt', 100)
     df = pd.read_csv('Output/trial/iter_1/HHCouples count.csv')
-    hypos = df[df['count']>10].np.unique()
-    for x in df[df['count']>10].np.unique():
+    hypos = df[df['count'] > 10].np.unique()
+    for x in df[df['count'] > 10].np.unique():
         print(x)

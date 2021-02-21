@@ -28,6 +28,11 @@ def save_phrases_model(phraser: Phraser, path_to_model, train_time) -> Phraser:
 
 
 def load_phrases_model(path) -> Phraser:
+    """
+    Load a phraser to get statistic results
+    :param path:
+    :return:
+    """
     return Phraser.load(path)
 
 
@@ -98,7 +103,7 @@ def get_model_name(num_of_gram, min_count, threshold):
 
 def work_phraser(phraser_path, path_to_input, max_gram, min_counts, thresholds) -> str:
     """
-    Train a phraser with given corpus and parameters
+    Calculate phrases and rebuild the corpus file with phrases connected with underscore
     'The Emmy Award' -> 'The_Emmy_Award'
     :param folder_of_phraser: Path of folder where stores the phraser
     :param path_to_input: Path of the corpus file or folder
@@ -121,7 +126,6 @@ def work_phraser(phraser_path, path_to_input, max_gram, min_counts, thresholds) 
             min_count=min_counts[i - 2],
             threshold=thresholds[i - 2],
             progress_per=1000)
-        end = datetime.now()
 
         # ------------ Second step: save model and results for analyse --------------------
         model_name = "%d-grams-min%d-threshold%f"  % \

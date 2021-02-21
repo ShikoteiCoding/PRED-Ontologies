@@ -76,8 +76,51 @@ def get_negative_embeddings(path: str, w2v, hhcouples: DataFrame) -> DataFrame:
             if word1 in hhcouples.hypo.values or word2 in hhcouples.hypo.values or word1 in hhcouples.hyper.values \
                     or word2 in hhcouples.hyper.values:
                 nhhcouples.append([word1, word2])
-    embeddings = return_features_from_word(pd.DataFrame(nhhcouples), w2v)
+    embeddings = return_features_from_word(pd.DataFrame(nhhcouples, columns=['NP_a', 'NP_b']), w2v)
     return embeddings
+
+
+def get_labeled_hhcouples(path: str) -> DataFrame:
+    couples = []
+    with open(path, 'r') as f:
+        lines = f.readlines()
+    for line in lines:
+        line = line.replace('\n', '').split('\t')
+        word1, word2, is_hyp = line[0].split('-')[0].strip(), line[1].split('-')[0].strip(), line[2]
+        if is_hyp == 'True':
+            couples.append([word1, word2, 1])
+        else:
+            couples.append([word1, word2, 0])
+    return pd.DataFrame(couples, columns=['hypo', 'hyper', 'label'])
+
+
+def split_train_test(path_to_labeled_dataset, w2v, test_size, random_state):
+    labeled_couples = get_labeled_hhcouples(path_to_labeled_dataset)
+    labeled_couples['vec_a'] = labeled_couples['hypo'].apply(lambda x: get_embedding(w2v, '_'.join(x.split()))
+    if len(x.split()) > 1 else get_embedding(w2v, x))
+    labeled_couples['vec_b'] = labeled_couples['hyper'].apply(lambda x: get_embedding(w2v, '_'.join(x.split()))
+    if len(x.split()) > 1 else get_embedding(w2v, x))
+    embeddings = labeled_couples.dropna()
+    X_train, X_test, y_train, y_test = train_test_split(embeddings.loc[:, ['hypo', 'hyper', 'vec_a', 'vec_b']],
+                                                        embeddings.loc[:, ['label']], test_size=test_size,
+                                                        random_state=random_state)
+    return X_train, X_test, y_train, y_test
+
+
+def evaluate_classifier(clf, threshold, X_test, y_test):
+    predict = clf.predict_proba(self_concat(X_test))
+    y_pred = [1 if x >= threshold else 0 for x in predict[:, 1]]
+    recall = recall_score(y_test, y_pred, average='macro')
+    precision = precision_score(y_test, y_pred, average='macro')
+    print("precision = %f, recall = %f" % (precision, recall))
+
+
+def get_negative_embeddings2(X_train, y_train, hhcouples: DataFrame):
+    X_train = pd.concat([X_train, y_train], axis=1)
+    X_train = X_train[X_train['label']==0]
+    negative_embeddings = pd.merge(X_train, hhcouples, how='outer').dropna()
+    return negative_embeddings.loc[:,['vec_a', 'vec_b']]
+
 
 
 def merge_dataset(positive: DataFrame, negative: DataFrame) -> pd.DataFrame:
@@ -110,8 +153,9 @@ def self_concat(dataset: DataFrame):
     :param dataset:
     :return:
     """
-    combine = pd.DataFrame(np.column_stack(list(zip(*dataset['vec_a'])) + list(zip(*dataset['vec_b'])))).reset_index(drop=True)
-    lastcol = (dataset['vec_a']-dataset['vec_b'])\
+    combine = pd.DataFrame(np.column_stack(list(zip(*dataset['vec_a'])) + list(zip(*dataset['vec_b'])))).reset_index(
+        drop=True)
+    lastcol = (dataset['vec_a'] - dataset['vec_b']) \
         .apply(lambda x: np.linalg.norm(x, ord=1)).reset_index(drop=True)
 
     max_min_scaler = lambda x: (x - np.min(x)) / (np.max(x) - np.min(x))
@@ -121,17 +165,16 @@ def self_concat(dataset: DataFrame):
     return result
 
 
-def train_model(dataset: DataFrame, show_cross_val=True):
+def train_svm_model(dataset: DataFrame, show_cross_val=True):
     X_dataset = self_concat(dataset)
     y_dataset = dataset['label']
-    # clf = AdaBoostClassifier(svm.SVC(probability=True), n_estimators=10, learning_rate=1.0)
-
     clf = svm.SVC(probability=True)
     if show_cross_val:
-        cvs = cross_val_score(clf, X_dataset, y_dataset, cv=5, scoring=make_scorer(classification_report_with_precision_score))
-        print('averge preceision score = ', cvs.mean())
+        cvs = cross_val_score(clf, X_dataset, y_dataset, cv=5,
+                              scoring=make_scorer(classification_report_with_precision_score))
     clf_res = clf.fit(X_dataset, y_dataset)
     return clf_res
+
 
 def xgboost(dataset: DataFrame, show_cross_val=True):
     X_dataset = self_concat(dataset)
@@ -174,7 +217,7 @@ def get_predict_result(nps: DataFrame, clf, isSaved=False, path_predict=None) ->
 
 def save_predict_set(nps: DataFrame, model, path):
     """ Save the NP pair embeddings in csv, to be run only once to build the massive matrix """
-    print('>'*12, 'Saving predict set ', '>'*12)
+    print('>' * 12, 'Saving predict set ', '<' * 12)
 
     count = 0
     step = 100
@@ -202,7 +245,7 @@ def save_predict_set(nps: DataFrame, model, path):
     result = pd.concat([merged, embeddings], axis=1)
     result.columns = ['NP_a', 'NP_b', 'vec_a', 'vec_b']
     result.dropna(axis=0, inplace=True)
-    result.to_pickle("%s%d.pkl" % (path, count+1))  # append mode
+    result.to_pickle("%s%d.pkl" % (path, count + 1))  # append mode
 
 
 def build_predict_embedding_pairs(nps: DataFrame, model, limit) -> DataFrame:
@@ -210,7 +253,8 @@ def build_predict_embedding_pairs(nps: DataFrame, model, limit) -> DataFrame:
     nps['key'] = 0
     dt = nps.loc[:limit]
     result = pd.merge(dt, nps.loc[:limit], on='key').drop(columns=['key'], axis=1)
-    embeddings = result.applymap(lambda x: '_'.join(x.split()) if len(x.split()) > 1 else x).applymap(lambda x: get_embedding(model, x))
+    embeddings = result.applymap(lambda x: '_'.join(x.split()) if len(x.split()) > 1 else x).applymap(
+        lambda x: get_embedding(model, x))
     result = pd.concat([result, embeddings], axis=1)
     result.columns = ['NPa', 'NPb', 'worda', 'wordb']
     result.dropna(axis=0, inplace=True)
@@ -220,22 +264,19 @@ def build_predict_embedding_pairs(nps: DataFrame, model, limit) -> DataFrame:
     result.to_csv('Output/test/predict embedding pairs.csv')
     return result
 
+
 def converter(instr):
     return np.fromstring(instr[1:-1], sep=' ')
 
 
 def load_predict_set(path_to_predict_pair, limit=None) -> DataFrame:
     # TODO: read in chunk if it's too big
-    print('>'*12, 'Loading predict set ', '>'*12)
-    for x in  os.listdir(path_to_predict_pair):
-        print(x)
-        set = pd.read_pickle(path_to_predict_pair + x)
+    print('>' * 12, 'Loading predict set ', '>' * 12)
     pairs = pd.concat([pd.read_pickle(path_to_predict_pair + x) for x in os.listdir(path_to_predict_pair)])
     return pairs
 
 
-
-def save_output(result: DataFrame,  trial_path: str, params=None) -> None:
+def save_output(result: DataFrame, trial_path: str, params=None) -> None:
     """
     Save the output after one iteration; couples in .csv, parameters in .txt
     :param params: hyper parameters for the model
@@ -278,11 +319,12 @@ def _get_iter_folder_path(path, iteration) -> str:
 def converter(instr):
     return np.fromstring(instr[1:-1], sep=' ')
 
+
 if __name__ == '__main__':
     df = pd.DataFrame({'worda': ['band'],
-                       'wordb':['new'],
-                       'embed1': [np.array([1, 2,3])],
-                        'embed2': [np.array([3, 4,5])]})
+                       'wordb': ['new'],
+                       'embed1': [np.array([1, 2, 3])],
+                       'embed2': [np.array([3, 4, 5])]})
     df.to_csv('tmp.csv')
     df3 = pd.read_csv('tmp.csv')
     print(df3)

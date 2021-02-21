@@ -14,26 +14,23 @@ def train_word2vec_model(sentence_path: str, path_to_model:str, num_workers: int
                          min_word_count: int,
                          context_size: int, downsampling: float) -> Word2Vec:
     """
-    train and return a word2vec model, if saved the parameters are also saved in the same folder
+    train and return a word2vec model
     :param path_to_model: path where to save the model
     :param sentence_path:  the path of the txt file of sentences, can be a folder or a file
     :return: trained word2vec model
     """
 
-    print("Training model...")
-    start_time = datetime.now()
     # model = word2vec.Word2Vec(TokenGenerator(path=sentence_path, keep_stop=True, keep__=True),
     #                           workers=num_workers, size=num_features, min_count=min_word_count,
     #                           window=context_size, sample=downsampling)
     model = word2vec.Word2Vec(BasicTokenGenerator(path=sentence_path, keep__=True),workers=num_workers, size=num_features, min_count=min_word_count,
                               window=context_size, sample=downsampling)
+
     # forget the original vectors and only keep the normalized ones = saves lots of memory!
     model.wv.init_sims(replace=True)
-    end_time = datetime.now()
 
     # save the model
     model.save(path_to_model)
-    print("finished")
     return model
 
 

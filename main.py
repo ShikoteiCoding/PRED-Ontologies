@@ -47,7 +47,7 @@ iteration_path = "Output/Trial/iter_@/"  # replace @ with iteration folder
 spm_file_name = "sequential_patterns.txt"
 corpus_file_name = "Music.all"  # labeled couple dataset
 hhcouple_file_name = "HHCouples.csv"
-np_file_name = "All NPs-lemmatized-remove first occurrence stop words.txt"
+np_file_name = "All NPs-lemmatized-maxLength=%d.txt" % MAX_NP_LENGTH
 np_lemma_file_name = np_file_name.replace('.txt', '-lemma.csv')
 first_corpus_np_file_name = 'corpus01-NPs.txt'
 hypo_count_file_name = 'kept-hypos-count.csv'
@@ -62,18 +62,21 @@ positive_couples_name = 'positive couples.csv'
 # path_to_test_corpus = dataset_path + test_corpus_name
 path_to_label_dataset = 'Dataset/' + corpus_file_name
 path_to_test_corpus = 'Dataset/processed_files/00_processed.txt'
+path_to_input = 'Dataset/sentences/sentence_lemmatized.txt'
+path_to_iteration_output = 'Output/Trial-Full NP-All hypos/iter_@/'
 path_to_whole_corpus = 'Dataset/processed_files/'
 path_to_whole_sentences = 'Dataset/sentences/sliced_files/'
 path_to_spm = spm_path + spm_file_name
 path_to_w2v = w2v_path + w2v_model_name
 path_to_np = np_path + np_file_name
-path_to_np_lemmas = np_path + np_lemma_file_name
+# path_to_np_lemmas = np_path + np_lemma_file_name
 path_to_filtered_NPs = np_path + np_file_name.replace('.txt', '-above%d.txt' % MIN_NP_COUNT)
 path_to_new_corpus = phraser_path + new_corpus_name
 path_to_phraser = phraser_path + phraser_name
-path_to_predict_set = np_path + predict_set_name.replace('.pkl', '/')
+path_to_predict_set = predict_npset_path + np_file_name.replace('.txt', '/')
 path_to_first_corpus_predict_set = np_path + 'pickles/first corpus, min=%d/' % MIN_NP_COUNT
-
+path_to_phrased_corpus = phraser_path + "%d-grams-min%d-threshold%f_sentences.txt" % \
+                     (max_gram, min_counts[-1], thresholds[-1])
 
 def evaluate_NP_vector(np_set: List, w2v: Word2Vec, isSaved=False, path_to_result=None) -> DataFrame:
     """
@@ -101,12 +104,13 @@ def evaluate_NP_vector(np_set: List, w2v: Word2Vec, isSaved=False, path_to_resul
     return df
 
 
-def check_dir(path):
-    if not os.path.exists(path):
-        try:
-            os.makedirs(path)
-        except OSError as e:
-            print("create dir failed", str(e))
+def check_dir(*paths):
+    for path in paths:
+        if not os.path.exists(path):
+            try:
+                os.makedirs(path)
+            except OSError as e:
+                print("create dir failed", str(e))
 
 
 def add_capital_s(list) -> List:
@@ -132,131 +136,114 @@ def return_dict(list) -> Dict:
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s',
                         level=logging.INFO)
-    # pd.set_option('display.max_columns', None)    pd.set_option('display.max_rows', None)
+    # pd.set_option('display.max_columns', None)
+    # pd.set_option('display.max_rows', None)
 
-    # core_concepts = ["music"]
     core_concepts = ['instrument', 'composition', 'genre', 'instrumentation', 'event']
     no_training_concepts = ['singer', 'artist', 'song', 'band', 'group', 'album', 'music', 'yes', 'people', 'musician',
                             'star', 'fan']
+
     hypernym_set = set(core_concepts)
     no_training_set = add_capital_s(no_training_concepts)
     iteration = 1
-    check_dir(np_path)
-    check_dir(w2v_path)
-    check_dir(phraser_path)
-    check_dir(path_to_predict_set)
+    check_dir(np_path,w2v_path, phraser_path, path_to_predict_set)
+
     # 2.4 . reduce w2v feature size
 
     """     Step 0-1: Work with Phraser         """
-    """     NO LONGER OF USAGE   """
-    # path_to_output = w2vPhraser.work_phraser(phraser_path, 'Dataset/sentences/sentence_lemmatized.txt',
-    #                                   max_gram=max_gram, min_counts=min_counts,
-    #                                   thresholds=thresholds)
-    # phraser = w2vPhraser.load_phrases_model(path_to_phraser)
+    if not os.path.exists(path_to_phrased_corpus):
+        print("not exists path_to_phrased_corpus")
+        path_to_phrased_corpus = w2vPhraser.work_phraser(phraser_path, path_to_input,
+                                      max_gram=max_gram, min_counts=min_counts,
+                                      thresholds=thresholds)
 
-    """     Step 0-2: Train word2vec model      """
-    print("saving w2v: ", path_to_w2v)
-    # w2v = w2vf.train_word2vec_model(path_to_output, path_to_w2v,
-    #                                 num_workers, num_features, min_word_count, context_size, down_sampling)
-    # # print(len(w2v.wv.vocab))
+    """     Step 0-2: Train or load a word2vec model      """
+    if not os.path.exists(path_to_w2v):
+        print("not exists path_to_w2v")
+        w2v = w2vf.train_word2vec_model(path_to_phrased_corpus, path_to_w2v,
+                                        num_workers, num_features, min_word_count, context_size, down_sampling)
+    else:
+        w2v = w2vf.load_word2vec_model(path_to_w2v)
 
-    w2v = w2vf.load_word2vec_model(path_to_w2v)
-    #
     # """ Test with the w2v model"""
-    # print(pd.DataFrame(w2vf.get_topn_similar(w2v, "believe_that", 20)))
-    # print(pd.DataFrame(w2vf.get_topn_similar(w2v, "the_band", 20)))
-    # print(pd.DataFrame(w2vf.get_topn_similar(w2v, "close_to", 20)))
-    # print(pd.DataFrame(w2vf.get_topn_similar(w2v, "record", 20)))
-    # print(pd.DataFrame(w2vf.get_topn_similar(w2v, "music", 20)))
-    # print(pd.DataFrame(w2vf.get_topn_similar(w2v, "instrument", 20)))
-    #
-    # print(pd.DataFrame(w2vf.get_topn_similar(w2v, "genre", 20)))
     # print(pd.DataFrame(w2vf.get_topn_similar(w2v, "rock", 20)))
     # print(pd.DataFrame(w2vf.get_topn_similar(w2v, "art_rock", 20)))
     # print(pd.DataFrame(w2vf.get_topn_similar(w2v, "electric_guitar", 20)))
     # print(pd.DataFrame(w2vf.get_topn_similar(w2v, "jazz", 20)))
 
-    """     Step 0-3: Get real NPs by filtering and crossing """
-    # list_of_all_nps = pf.extract_NPs(processed_file_path, MAX_NP_LENGTH, True, path_to_np)
-    list_of_all_nps = pf.load_all_nps(path_to_np)  # All the NP words extracted by the parser
-    dt_filtered_nps = pf.filter_nps(list_of_all_nps, MIN_NP_COUNT, keep_count=False)
-    # print(dt_filtered_nps.head)
-    # dt_filtered_nps.drop(columns=['count'], inplace=True)
-    # filter NPs with frequency and stop words
-    # ML.save_predict_set(dt_filtered_nps, w2v, path_to_predict_set)  # takes time, run once and for all
+    """     Step 0-3: Get real NPs by filtering and cross pairing """
+    if not os.path.exists(path_to_np):
+        print("not exists path_to_np")
+        list_of_all_nps = pf.extract_NPs(processed_file_path, MAX_NP_LENGTH, path_to_np)
+    else:
+        list_of_all_nps = pf.load_all_nps(path_to_np)  # All the NP words extracted by the parser
 
+    # filter NPs with frequency and stop words
+    dt_filtered_nps = pf.filter_nps(list_of_all_nps, MIN_NP_COUNT)
+    if not os.listdir(path_to_predict_set):
+        print("not exists path_to_predict_set")
+        ML.save_predict_set(dt_filtered_nps, w2v, path_to_predict_set)
     predict_set = ML.load_predict_set(path_to_predict_set)
 
     """     Step 3: Extract HHCouples from hypernym_set     """
     list_of_patterns = pf.get_reliable_patterns(pf.parse_pattern_file(path_to_spm), SP_TH)
 
     while True:
-        path_to_iter = 'Output/Experiment Trial-Full NP-All hypos/iter_@/'.replace('@', str(iteration))
+        path_to_iter = path_to_iteration_output.replace('@', str(iteration))
         check_dir(path_to_iter)
-        logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)  # enable logging
         # Paths for each iteration
         path_to_hhcouples = path_to_iter + hhcouple_file_name  # Extracted HHCouples
         path_to_predict_result = path_to_iter + predict_result_name  # Result of predict set
         path_to_positive_couples = path_to_iter + positive_couples_name  # positive couples extracted(stats = times being extracted) and predicted(stats = probability)
         positive_couple_set = pd.DataFrame(columns=['hypo', 'hyper', 'stats'])
 
-        print(">>>>>>>>>>>>>>>>>>>> Extract HHCouples >>>>>>>>>>>>>>>>>>>>>>>")
+        print('>'*12, " Extract HHCouples ", '<'*12)
         dt_extracted_hhcouples = pf.get_couples_from_patterns(path_to_whole_corpus, list_of_patterns,
                                                               return_dict(hypernym_set).keys(),
                                                               99999999, True, path_to_hhcouples)
-        # dt_extracted_hhcouples = pd.read_csv(path_to_hhcouples)
-        """     IGNORE THIS PART FOR IT'S NO LONGER OF USAGE    """
-        # print("extracted %d hhcouples from corpus" % len(dt_extracted_hhcouples))
-        # dt_extracted_hhcouples_count = pf.load_HHCouples_to_dataframe(path_to_hhcouples)
 
-        # # # the frequency of hypo as NP in the corpus; works when keep_count = True in filter_nps()
-        # hypos_in_filtered_np_set = pf.get_hypos_with_np_count(dt_extracted_hhcouples, dt_filtered_nps)
-        # # # hypo_counts = pd.read_csv(path_to_hypo_count)
-        # #
-        # # # whether the hypo is in word2vec's vocabulary
-        # evaluate_NP_vector(hypos_in_filtered_np_set, w2v, True, path_to_hypo_in_vocab)
-        # dt_filtered_nps.drop('count')
-
-        """     Step 5   Train the model     """
+        """     Step 4   Train the model     """
         # Filter couples that hyponym is not in filtered NP set
+        X_train, X_test, y_train, y_test = ML.split_train_test(path_to_label_dataset, w2v, 0.25, 1)
         filtered_hhcouples = pf.get_filtered_hhcouples(dt_extracted_hhcouples, dt_filtered_nps).drop_duplicates()
-        filtered_hhcouples['hyper'] = filtered_hhcouples['hyper'].apply(lambda x: return_dict(hypernym_set)[x])
-        print(filtered_hhcouples)
+        filtered_hhcouples['hyper'] = filtered_hhcouples['hyper'].apply(lambda x: return_dict(hypernym_set)[x]) # get the hypernym's lemma
         positive_couple_set = positive_couple_set.append(filtered_hhcouples)  # Add extracted couples to positive couple set
 
-        print(">>>>>>>>>>>>>>>>>>>>>>>>> Build training dataset >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        # TODO How to deal with the high quality (stats) couples ?
-        filtered_hhcouples.drop(columns=['stats'], inplace=True)  # Do nothing and Drop for now
-        negative_embeddings = ML.get_negative_embeddings(path_to_label_dataset, w2v,
-                                                         filtered_hhcouples)  # Build negative dataset
+        print('>'*12, " Build training dataset ", '<'*12)
+        filtered_hhcouples.drop(columns=['stats'], inplace=True)
+        negative_embeddings = ML.get_negative_embeddings2(X_train, y_train, filtered_hhcouples)
+        # negative_embeddings = ML.get_negative_embeddings(path_to_label_dataset, w2v,
+        #                                                  filtered_hhcouples)  # Build negative dataset
 
         # Remove capital concepts and those that are in no_training set to avoid bias the classifier
         filtered_hhcouples = filtered_hhcouples.applymap(
             lambda x: None if x in no_training_set or str(x).istitle() else x)
         filtered_hhcouples.dropna(inplace=True)
         hhcouple_embeddings = ML.return_features_from_word(filtered_hhcouples, w2v)
-        # hhcouple_embeddings = ML.boost_embeddings(hhcouple_embeddings, 2)
 
         print("positive set size: %d " % hhcouple_embeddings.shape[0])
         print("negative set size: %d " % negative_embeddings.shape[0])
 
         train_dataset = ML.merge_dataset(hhcouple_embeddings, negative_embeddings)
 
-        print(">>>>>>>>>>>>>>>>>>>>>>>>> Train classifier >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-        clf = ML.train_model(train_dataset, show_cross_val=True)  # SVM
+        print('>'*12, " Train classifier ", '<'*12)
+        clf = ML.train_svm_model(train_dataset, show_cross_val=True)  # SVM
         # clf = ML.xgboost(train_dataset, show_cross_val=True)
+
+        """     Evaluate the prediction result      """
+        ML.evaluate_classifier(clf, PREDICT_TH, X_test, y_test)
 
         del hhcouple_embeddings, negative_embeddings, train_dataset
 
         """     Step 6   Construct predict dataset """
 
-        print(">>>>>>>>>>>>>>>>>>>> building predict set >>>>>>>>>>>>>>>>>>>>>>>>>")
-        # Do join of all NP predict set and hypernym set to get the predict set of this iteration
+        print('>'*12, " building predict set ", '<'*12)
+        # Do inner join of all NP predict set and hypernym set to get the predict set of this iteration
         filtered_predict_set = pd.merge(predict_set, pd.DataFrame(hypernym_set, columns=['hyper']),
                                         left_on='NP_b', right_on='hyper', how='inner').drop(columns='hyper')
 
         """     Step 7   Predict     """
-        print(">>>>>>>>>>>>>>>>>>>> Predict >>>>>>>>>>>>>>>>>>>>>>>>>")
+        print('>'*12, " Predict ", '<'*12)
         result = ML.get_predict_result(filtered_predict_set, clf, True, path_to_predict_result)
 
         """     Step 8 Save results of current iteration    """
