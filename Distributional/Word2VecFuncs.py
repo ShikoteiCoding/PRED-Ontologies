@@ -7,7 +7,7 @@ import gensim
 import logging
 from gensim.models import word2vec, Word2Vec
 
-from Helpers.Generator import TokenGenerator, BasicGenerator, LemmaGenerator, BasicTokenGenerator
+from Helpers.Generator import TokenGenerator
 
 
 def train_word2vec_model(sentence_path: str, path_to_model:str, num_workers: int, num_features: int,
@@ -23,7 +23,7 @@ def train_word2vec_model(sentence_path: str, path_to_model:str, num_workers: int
     # model = word2vec.Word2Vec(TokenGenerator(path=sentence_path, keep_stop=True, keep__=True),
     #                           workers=num_workers, size=num_features, min_count=min_word_count,
     #                           window=context_size, sample=downsampling)
-    model = word2vec.Word2Vec(BasicTokenGenerator(path=sentence_path, keep__=True),workers=num_workers, size=num_features, min_count=min_word_count,
+    model = word2vec.Word2Vec(TokenGenerator(path=sentence_path, keep__=True), workers=num_workers, size=num_features, min_count=min_word_count,
                               window=context_size, sample=downsampling)
 
     # forget the original vectors and only keep the normalized ones = saves lots of memory!
@@ -58,10 +58,3 @@ def get_topn_similar(model, word, topn) -> List:
 def get_similarity(model, worda, wordb) -> float:
     return model.similarity(worda, wordb)
 
-
-if __name__ == "__main__":
-    nlp = spacy.load("en_core_web_sm")
-    for sentence in BasicGenerator('../Dataset/NPs/NPs/00_NPs.txt'):
-        s = nlp(sentence)
-        for n in s.ents:
-            print(n.text,'\t', n.label_)

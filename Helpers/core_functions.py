@@ -9,7 +9,7 @@ import pandas as pd
 from nltk.corpus import stopwords
 
 from Helpers import ParsedSentence as ps
-from Helpers.Generator import LineGenerator, BasicGenerator
+from Helpers.Generator import LineGenerator
 from Helpers.ParsedSentence import ParsedSentence
 from spacy.lang.en.stop_words import STOP_WORDS
 
@@ -35,7 +35,7 @@ stopWords.add("good")
 
 def get_sentences_from_dir_NPlemma(path: str) -> Generator[ParsedSentence, None, None]:
     """
-    Returns all the (content) sentences in a processed corpus file
+    Returns all the (content) sentences in a processed corpus file to extract lemmatized NPs from a directory
     :param path: dir path
     :return: the next sentence (a generator function)
     """
@@ -46,7 +46,7 @@ def get_sentences_from_dir_NPlemma(path: str) -> Generator[ParsedSentence, None,
     ri = 0
     np = ""
     np_indexes = []
-    for line in BasicGenerator(path):
+    for line in LineGenerator(path):
         # try:
         #     line = str(line, "utf-8")
         # except:
@@ -96,9 +96,11 @@ def get_sentences_from_dir_NPlemma(path: str) -> Generator[ParsedSentence, None,
             except Exception as e:
                 print(str(e))
                 continue
+
+
 def get_sentences_NPlemma(corpus_file: str) -> Generator[ParsedSentence, None, None]:
     """
-    Returns all the (content) sentences in a processed corpus file
+    Returns all the (content) sentences in a processed corpus file to extract lemmatized NPs
     :param corpus_file: the processed corpus file (may be compressed or not)
     :return: the next sentence (a generator function)
     """
@@ -257,7 +259,7 @@ def get_sentences_from_dir(path: str) -> Generator[ParsedSentence, None, None]:
     ri = 0
     np = ""
     np_indexes = []
-    for line in BasicGenerator(path):
+    for line in LineGenerator(path):
         # try:
         #     line = str(line, "utf-8")
         # except:

@@ -7,7 +7,6 @@ import pandas as pd
 from datetime import datetime
 
 from gensim.models.phrases import Phrases, Phraser, pseudocorpus, original_scorer
-from Helpers.Generator import stop, LemmaGenerator, BasicTokenGenerator
 from Helpers.Generator import TokenGenerator
 
 
@@ -15,16 +14,6 @@ from Helpers.Generator import TokenGenerator
 def build_phrases_model(sentences, min_count, threshold, progress_per) -> Phraser:
     phrases = Phrases(sentences, min_count=min_count, threshold=threshold, progress_per=progress_per, scoring="npmi")
     return Phraser(phrases)
-
-
-def save_phrases_model(phraser: Phraser, path_to_model, train_time) -> Phraser:
-    phraser.save(path_to_model)
-    with open(path_to_model + '-params.txt', 'w') as f:
-        f.write("min_count = %d\n" % phraser.min_count)
-        f.write("threshold = %d\n" % phraser.threshold)
-        f.write("train time = %s\n" % str(train_time))
-        f.write("detected grams = %d\n " % (len(phraser.phrasegrams)))
-    return phraser
 
 
 def load_phrases_model(path) -> Phraser:
@@ -46,7 +35,7 @@ def apply_phraser_to_corpus(phraser: Phraser, input_file_path, output_file_path)
     """
     count = 0
     with open(output_file_path, 'w', encoding='utf-8') as out_file:
-        for tokens in BasicTokenGenerator(input_file_path, keep__=True):
+        for tokens in TokenGenerator(input_file_path, keep__=True):
             parsed_sentence = ' '.join(phraser[tokens])
             out_file.write(parsed_sentence + '\n')
             count += 1
@@ -97,10 +86,6 @@ def calculate_score(phrases: Phrases, worda: str, wordb: str) -> str:
     print("[%s, %s]: %f" % (worda, wordb, score))
 
 
-def get_model_name(num_of_gram, min_count, threshold):
-    return "%d-grams-min%d-threshold%d-file00" % (num_of_gram, min_count, threshold)
-
-
 def work_phraser(phraser_path, path_to_input, max_gram, min_counts, thresholds) -> str:
     """
     Calculate phrases and rebuild the corpus file with phrases connected with underscore
@@ -122,7 +107,7 @@ def work_phraser(phraser_path, path_to_input, max_gram, min_counts, thresholds) 
 
         # ------------- First step: detect phrases -------------------
         phraser = build_phrases_model(
-            BasicTokenGenerator(path_to_input, keep__=keep__),
+            TokenGenerator(path_to_input, keep__=keep__),
             min_count=min_counts[i - 2],
             threshold=thresholds[i - 2],
             progress_per=1000)
@@ -143,6 +128,3 @@ def work_phraser(phraser_path, path_to_input, max_gram, min_counts, thresholds) 
 
     return path_to_output
 
-
-if __name__ == "__main__":
-    model = load_phrases_model("Output/Phraser/2-grams-min10-threshold100")
